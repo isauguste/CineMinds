@@ -1,0 +1,93 @@
+# macOS system files
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.venv/
+venv/
+pip-log.txt
+
+# PHP
+vendor/
+
+# Ruby
+.bundle/
+log/
+tmp/
+*.gem
+*.rbc
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+target/
+build/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Go
+bin/
+*.exe
+
+# VS Code / JetBrains IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# General backups and OS-specific
+*~
+*.swp
+*.swo
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Git
+*.orig
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Secrets (adjust carefully)
+*.key
+*.pem
+*.crt
+*.env
+.env.*
+secrets/
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
