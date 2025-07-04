@@ -1,0 +1,207 @@
+<!--This file has not yet been link to index.html, waiting for backend development --> 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile – MoodFlix</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #2c0f5c, #1a012d);
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .favorites-section {
+      max-width: 1000px;
+      margin: 2rem auto;
+    }
+
+    .favorites-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .favorites-header h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters select {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .movie-card {
+      background: #181028; 
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      padding: 1rem; 
+      text-align: center; 
+      transition: transform 0.3s ease; 
+    } 
+
+    .movie-card:hover {
+       transform: translateY(-5px);
+       box-shadow: 0 8px 16px rgba(255, 74, 43, 0.3);
+    }
+
+    .movie-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .movie-card h4 {
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    .movie-card .genre {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .rating {
+      color: gold;
+      margin: 0.5rem 0;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      background: #ff4b2b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .pagination button:hover {
+      background: #ff3a1a;
+    } 
+
+    select {
+      background-color: #5f27cd;
+      color: #ffffff;
+      border: 1px solid #8855ff; 
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      margin: 0 10px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+   }
+
+   select:focus {
+     outline: none;
+     background-color: rgba(255, 255, 255, 0.15);
+     color: #ffffff;
+     border-color: #d28aff;
+   }
+
+   option {
+     background-color: #2c0f5c;
+     color: #ffffff;
+   }
+  </style>
+</head>
+<body>
+
+  <main>
+    <section class="favorites-section">
+      <div class="favorites-header">
+        <h2>My Favorite Movies</h2>
+        <div class="filters">
+          <select>
+            <option>Sort by: Title</option>
+            <option>Sort by: Genre</option>
+            <option>Sort by: Date Added</option>
+          </select>
+          <select>
+            <option>Filter by: All Genres</option>
+            <option>Action</option>
+            <option>Adventure</option>
+            <option>Animation</option>
+            <option>Biography</option>
+            <option>Comedy</option>
+            <option>Crime</option>
+            <option>Documentary</option>
+            <option>Drama</option>
+            <option>Family</option>
+            <option>Fantasy</option>
+            <option>History</option>
+            <option>Horror</option>
+            <option>Music</option>
+            <option>Mystery</option>
+            <option>Romance</option>
+            <option>Sci-Fi</option>
+            <option>Thriller</option>
+            <option>War</option>
+            <option>Western</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="movie-grid">
+        <!-- Dummy cards -->
+        <div class="movie-card">
+          <img src="https://via.placeholder.com/180x250?text=Movie+Poster" alt="Movie Poster">
+          <h4>Inception</h4>
+          <p class="genre">Sci-Fi</p>
+	  <div class="rating">⭐⭐⭐⭐☆</div> <!-- As of now the star ratings are not interactive -->
+          <button>Remove from Favorites</button>
+        </div>
+
+        <div class="movie-card">
+          <img src="https://via.placeholder.com/180x250?text=Movie+Poster" alt="Movie Poster">
+          <h4>La La Land</h4>
+          <p class="genre">Romance</p>
+          <div class="rating">⭐⭐⭐⭐⭐</div>
+          <button>Remove from Favorites</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="pagination">
+    <button>&laquo; Prev</button>
+    <button>Next &raquo;</button>
+  </div>
+
+</body>
+</html>
+
