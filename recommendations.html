@@ -24,6 +24,7 @@
 
     <form id="moodForm" class="space-y-6 w-full max-w-lg">
       <textarea 
+        id="moodText"
         name="moodText" 
         rows="4" 
         class="w-full p-4 rounded-xl bg-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -33,6 +34,7 @@
       <div class="text-gray-300">OR</div>
 
       <select 
+        id="moodSelect"
         name="moodSelect" 
         class="w-full p-3 rounded-xl bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-red-400"
       >
@@ -51,9 +53,21 @@
     </form>
   </section>
 
+  <!-- Results Section (Initially hidden) -->
+  <section id="resultsSection" class="py-10 px-4 hidden">
+    <h3 class="text-2xl font-semibold mb-6 text-center">Your Movie Recommendations</h3>
+    <div id="resultsContainer" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Movie cards will be inserted here -->
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="text-center py-4 text-sm text-gray-400">
     &copy; 2025 MoodFlix. All rights reserved.
   </footer>
+
+  <!-- JS Script -->
+  <script src="scripts/recommendations.js"></script>
 </body>
 </html>
+
