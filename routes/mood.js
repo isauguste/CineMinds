@@ -12,7 +12,7 @@ router.post('/analyzeMood', async (req, res) => {
 
   try {
     // Step 1: Find genre match from mood
-    const [mappingRows] = await db.promise().query(
+    const [mappingRows] = await db.query(
       'SELECT genre FROM mood_genre_map WHERE mood = ? LIMIT 1',
       [moodText.toLowerCase()]
     );
@@ -24,7 +24,7 @@ router.post('/analyzeMood', async (req, res) => {
     const genre = mappingRows[0].genre;
 
     // Step 2: Get movies matching that genre
-    const [movieRows] = await db.promise().query(
+    const [movieRows] = await db.query(
       `SELECT * FROM movies WHERE genre LIKE ? LIMIT 10`,
       [`%${genre}%`]
     );
