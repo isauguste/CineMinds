@@ -31,12 +31,12 @@ router.post('/analyzeMood', async (req, res) => {
 
     // Step 3: Build response
     const movies = movieRows.map(movie => ({
-      id: movie.id,
-      title: movie.title,
-      year: movie.year,
-      genres: movie.genre.split(',').map(g => g.trim()),
-      poster: movie.poster_url,
-      trailerLink: movie.trailer_url,
+      id: movie.id ?? null,
+      title: movie.title ?? 'Untitled',
+      year: movie.year ?? 'Unknown',
+      genres: movie.genre ? movie.genre.split(',').map(g => g.trim()) : [],
+      poster: movie.poster_url ?? '',
+      trailerLink: movie.trailer_url ?? '',
       reviews: movie.review ? [movie.review] : [],
     }));
 
