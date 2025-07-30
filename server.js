@@ -14,10 +14,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const moviesRouter = require('./routes/movies');
 const moodRoutes = require('./routes/mood');
 
 // Register routes
+app.use('/api/auth', authRoutes);
 app.use('/api/movies', moviesRouter);
 app.use('/api', moodRoutes);
 
