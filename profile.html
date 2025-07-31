@@ -234,7 +234,7 @@
 
     async function fetchUserProfile() {
       try {
-        const res = await fetch(`/api/users/${userId}`);
+        const res = await fetch(`http://localhost:3000/api/users/${userId}`);
         const data = await res.json();
         document.getElementById('usernameDisplay').textContent = data.username;
         document.getElementById('emailDisplay').textContent = data.email;
@@ -249,7 +249,7 @@
       const updatedUsername = document.getElementById('editUsername').value;
       const updatedEmail = document.getElementById('editEmail').value;
       try {
-        const res = await fetch(`/api/users/${userId}`, {
+        const res = await fetch(`http://localhost:3000/api/users/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: updatedUsername, email: updatedEmail })
