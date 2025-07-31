@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Profile – MoodFlix</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
   <style>
     html, body {
       height: 100%;
@@ -233,8 +234,13 @@
 
     async function fetchUserProfile() {
       try {
-        const res = await fetch(`http://localhost:3000/api/users/${userId}`);
-        const data = await res.json();
+        const res = await fetch(`http://localhost:3000/api/user/${userId}`);
+        
+	if (!res.ok) { 
+		throw new Error('Failed to fetch profile: ${res.status}'); 
+	}
+
+	const data = await res.json();
         document.getElementById('usernameDisplay').textContent = data.username;
         document.getElementById('emailDisplay').textContent = data.email;
         document.getElementById('editUsername').value = data.username;
@@ -248,7 +254,7 @@
       const updatedUsername = document.getElementById('editUsername').value;
       const updatedEmail = document.getElementById('editEmail').value;
       try {
-        const res = await fetch(`http://localhost:3000/api/users/${userId}`, {
+        const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: updatedUsername, email: updatedEmail })
