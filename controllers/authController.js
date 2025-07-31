@@ -29,7 +29,7 @@ exports.registerUser = async (req, res) => {
 
     // Save user
     await db.query(
-      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
       [username, email, hashedPassword]
     );
 
@@ -59,7 +59,7 @@ exports.loginUser = async (req, res) => {
     const user = rows[0];
 
     // Compare password with hash
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
       return res.status(401).json({ message: 'Invalid username or password.' });
