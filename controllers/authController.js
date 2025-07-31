@@ -5,7 +5,14 @@ const saltRounds = 10;
 // REGISTER
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const username = req.body.username?.trim();
+    const email = req.body.email?.trim();
+    const password = req.body.password; 
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format.' });
+    }
 
     // Check if user exists
     const [existing] = await db.query(
@@ -36,7 +43,8 @@ exports.registerUser = async (req, res) => {
 // LOGIN
 exports.loginUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const username = req.body.username?.trim();
+    const password = req.body.password;
 
     // Find user
     const [rows] = await db.query(
