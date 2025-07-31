@@ -17,7 +17,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
 
     if (res.ok) {
       localStorage.setItem('username', data.username);
-      localStorage.setItem('userId', data.id);
+      localStorage.setItem('userId', data.userId);
       window.location.href = 'profile.html';
     } else {
       showError('login', data.message || 'Invalid credentials.');
