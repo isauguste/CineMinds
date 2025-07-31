@@ -17,11 +17,13 @@ app.use(express.json());
 const authRoutes = require('./routes/auth');
 const moviesRouter = require('./routes/movies');
 const moodRoutes = require('./routes/mood');
+const userRoutes = require('./routes/user');
 
 // Register routes
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', moviesRouter);
 app.use('/api', moodRoutes);
+app.use('/api/user', userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
