@@ -16,7 +16,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
     const data = await res.json();
 
     if (res.ok) {
-      window.location.href = 'index.html';
+      localStorage.setItem('username', data.username);
+      localStorage.setItem('userId', data.id);
+      window.location.href = 'profile.html';
     } else {
       showError('login', data.message || 'Invalid credentials.');
     }
