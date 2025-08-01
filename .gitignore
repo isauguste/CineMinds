@@ -90,4 +90,8 @@ secrets/
 # Temporary files
 tmp/
 temp/
-.cache/
+.cache/ 
+
+#Frontend files
+*.html
+js/
