@@ -6,7 +6,7 @@ const app = express();
 // Explicit CORS configuration to fix CORS error
 const corsOptions = {
   origin: 'http://localhost:5500',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type']
 };
 
