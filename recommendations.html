@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Recommendations | MoodFlix</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <!-- Fade-in Animation -->
+  <style>
+    .fade-in {
+      animation: fadeIn 1.6s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 min-h-screen text-white">
   <!-- Navigation Bar -->
@@ -14,8 +24,17 @@
       <a href="index.html" class="hover:underline">Home</a>
       <a href="login.html" class="hover:underline">Login</a>
       <a href="register.html" class="hover:underline">Register</a>
+      <a href="profile.html" class="hover:underline">Profile</a>
     </div>
-  </nav>
+  </nav> 
+
+  <!-- Welcome Banner (Shown only if redirected from homepage) -->
+  <div id="moodBanner" class="bg-purple-600 text-white text-center py-4 px-6 relative hidden">
+   <span class="block text-lg font-medium">
+     Thanks for sharing your mood! Want to tell us more about how you’re feeling?
+   </span>
+  </div>
+
 
   <!-- Mood Input Section -->
   <section class="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -31,7 +50,7 @@
         placeholder="Type how you're feeling..."
       ></textarea>
 
-      <div class="text-gray-300">OR</div>
+      <div class="text-gray-300 font-semibold mb-4">Or if you don't feel like elaborating:</div>
 
       <select 
         id="moodSelect"
@@ -68,7 +87,20 @@
 
   <!-- JS Script -->
   <script src="js/recommendations.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/main.js"></script> 
+  
+  <script>
+  // Only show banner if redirected from homepage with a mood in sessionStorage
+  document.addEventListener("DOMContentLoaded", function () {
+    const moodSource = sessionStorage.getItem("fromHomeMoodSubmit");
+    if (moodSource === "true") { 
+      const banner = document.getElementById("moodBanner");
+      banner.classList.remove("hidden");
+      banner.classList.add("fade-in");
+      sessionStorage.removeItem("fromHomeMoodSubmit");
+    }
+  });
+ </script>
 </body>
 </html>
 
