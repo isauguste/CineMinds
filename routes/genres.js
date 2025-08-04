@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-router.get('/', async (req, res) => {
+router.get('/genres', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM genres');
     res.json(rows);
