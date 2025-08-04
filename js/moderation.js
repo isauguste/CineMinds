@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) {
+  alert("Unauthorized: No token found");
+  window.location.href = "/login.html";
+}
   const headers = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`
