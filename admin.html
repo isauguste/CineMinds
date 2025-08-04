@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – MoodFlix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+<!--  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const role = sessionStorage.getItem("role");
+      if (role !== "admin") {
+        window.location.href = "login.html";
+      }
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          sessionStorage.clear();
+          window.location.href = "login.html";
+        });
+      }
+    });
+</script> -->
+</head>
+<body class="bg-gradient-to-b from-purple-900 to-black text-white min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-purple-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="index.html" class="text-white font-bold text-xl">MoodFlix</a>
+      <ul class="flex space-x-6 text-sm">
+        <li><a href="profile.html" class="hover:text-purple-200">Profile</a></li>
+	<li><a href="manager.html" class="hover:text-purple-200">Manager Tools</a></li>
+        <li><a href="moodGenreMapping.html" class="hover:text-purple-200">Mood Mapping</a></li><li><button id="logoutBtn" class="text-red-300 hover:text-red-500">Logout</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="flex-grow container mx-auto px-6 py-10">
+    <h1 class="text-4xl font-bold mb-8 text-center">Admin Dashboard</h1>
+
+    <!-- Users Section -->
+    <section class="mb-10 bg-gray-900 p-6 rounded-xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">All Users</h2>
+      <table class="w-full table-auto text-left bg-gray-800 rounded-lg overflow-hidden">
+        <thead>
+          <tr class="bg-purple-700 text-white">
+            <th class="px-4 py-2">Username</th>
+            <th class="px-4 py-2">Email</th>
+            <th class="px-4 py-2">Role</th>
+            <th class="px-4 py-2">Promote</th>
+          </tr>
+        </thead>
+        <tbody id="userTable" class="text-sm">
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Logs Section -->
+    <section class="mb-10 bg-gray-900 p-6 rounded-xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">System Logs / Stats</h2>
+      <pre id="logOutput" class="bg-gray-800 p-4 rounded text-green-300 text-sm max-h-64 overflow-y-auto">Loading logs...</pre>
+    </section>
+
+    <!-- API Cache Reset -->
+    <section class="bg-gray-900 p-6 rounded-xl shadow-md text-center">
+      <h2 class="text-xl font-semibold mb-4">Cache Management</h2>
+      <button id="resetCacheBtn" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded text-white transition">
+        Reset API Cache
+      </button>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-gray-400 text-sm py-6">
+    © 2025 MoodFlix Admin Panel
+  </footer>
+</body>
+</html>
+
