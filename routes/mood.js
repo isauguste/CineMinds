@@ -2,6 +2,18 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); 
 
+// GET /api/moods
+router.get('/moods', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT id, mood_label FROM moods');
+    res.json(rows);
+  } catch (err) {
+    console.error('[ERROR fetching moods]', err);
+    res.status(500).json({ error: 'Failed to fetch moods' });
+  }
+});
+
+
 // POST /api/analyzeMood
 router.post('/analyzeMood', async (req, res) => {
   const { moodText } = req.body;
