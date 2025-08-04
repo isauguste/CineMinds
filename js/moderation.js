@@ -1,204 +1,67 @@
 document.addEventListener("DOMContentLoaded", () => {
-  fetchMoods();
-  fetchGenres();
-  fetchMappings();
-  fetchCurrentFeaturedMood();
+  const token = localStorage.getItem("token");
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  };
+
+  const reviewsTable = document.getElementById("pendingReviewsTable");
+
+  async function fetchPendingReviews() {
+    try {
+      const res = await fetch("http://localhost:3000/api/manager/reviews/pending", { headers });
+      const reviews = await res.json();
+      renderReviewTable(reviews);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+      reviewsTable.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error loading reviews</td></tr>`;
+    }
+  }
+
+  function renderReviewTable(reviews) {
+    reviewsTable.innerHTML = "";
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+      reviewsTable.innerHTML = `<tr><td colspan="6" class="text-center text-gray-400 py-4">No pending reviews.</td></tr>`;
+      return;
+    }
+
+    reviews.forEach(review => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="px-4 py-2">${review.movie_title}</td>
+        <td class="px-4 py-2">${review.content}</td>
+        <td class="px-4 py-2">${review.username}</td>
+        <td class="px-4 py-2">${review.mood}</td>
+        <td class="px-4 py-2">${new Date(review.created_at).toLocaleDateString()}</td>
+        <td class="px-4 py-2 space-x-2 text-center">
+          <button class="approve-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded" data-id="${review.id}">Approve</button>
+          <button class="reject-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-id="${review.id}">Reject</button>
+        </td>`;
+      reviewsTable.appendChild(row);
+    });
+
+    document.querySelectorAll(".approve-btn").forEach(btn => {
+      btn.addEventListener("click", () => updateReviewStatus(btn.dataset.id, "approve"));
+    });
+    document.querySelectorAll(".reject-btn").forEach(btn => {
+      btn.addEventListener("click", () => updateReviewStatus(btn.dataset.id, "reject"));
+    });
+  }
+
+  async function updateReviewStatus(id, action) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/manager/reviews/${id}/${action}`, {
+        method: "PUT",
+        headers
+      });
+      if (!res.ok) throw new Error();
+      alert(`Review ${action}d successfully.`);
+      fetchPendingReviews();
+    } catch (err) {
+      console.error(`${action} Error:`, err);
+      alert(`Could not ${action} review.`);
+    }
+  }
+
+  fetchPendingReviews();
 });
-
-const token = localStorage.getItem("token");
-const headers = {
-  "Content-Type": "application/json",
-  "Authorization": `Bearer ${token}`
-};
-
-const moodSelect = document.getElementById("moodSelect");
-const genreSelect = document.getElementById("genreSelect");
-const mappingForm = document.getElementById("mappingForm");
-const mappingsTable = document.getElementById("mappingsTable");
-const featuredMoodSelect = document.getElementById("featuredMoodSelect");
-const currentFeaturedMood = document.getElementById("currentFeaturedMood");
-
-// Fetch moods for both mapping and featured mood selection
-async function fetchMoods() {
-  try {
-    const res = await fetch("http://localhost:3000/api/mood/moods");
-    const moods = await res.json();
-
-    // Clear both dropdowns
-    moodSelect.innerHTML = `<option value="">-- Select Mood --</option>`;
-    featuredMoodSelect.innerHTML = `<option value="">-- Select Mood --</option>`;
-
-    moods.forEach(mood => {
-      const option1 = document.createElement("option");
-      option1.value = mood.id;
-      option1.textContent = mood.mood_label;
-      moodSelect.appendChild(option1);
-
-      const option2 = document.createElement("option");
-      option2.value = mood.id;
-      option2.textContent = mood.mood_label;
-      featuredMoodSelect.appendChild(option2);
-    });
-  } catch (err) {
-    console.error("Failed to fetch moods:", err);
-  }
-}
-
-// Fetch genres
-async function fetchGenres() {
-  try {
-    const res = await fetch("http://localhost:3000/api/genres");
-    const genres = await res.json();
-
-    genreSelect.innerHTML = `<option value="">-- Select Genre --</option>`;
-
-    genres.forEach(genre => {
-      const option = document.createElement("option");
-      option.value = genre.id;
-      option.textContent = genre.name;
-      genreSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error("Failed to fetch genres:", err);
-  }
-}
-
-// Fetch and render mappings
-async function fetchMappings() {
-  try {
-    const res = await fetch("http://localhost:3000/api/manager/mappings", { headers });
-    const mappings = await res.json();
-    renderMappings(mappings);
-  } catch (err) {
-    console.error("Failed to fetch mappings:", err);
-  }
-}
-
-// Render mappings in table
-function renderMappings(mappings) {
-  mappingsTable.innerHTML = "";
-  mappings.forEach(mapping => {
-    const row = document.createElement("tr");
-
-    const genreCell = document.createElement("td");
-    genreCell.className = "px-4 py-2";
-    genreCell.textContent = mapping.genre;
-
-    const moodCell = document.createElement("td");
-    moodCell.className = "px-4 py-2";
-    moodCell.textContent = mapping.mood;
-
-    const actionCell = document.createElement("td");
-    actionCell.className = "px-4 py-2 text-center";
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "bg-red-500 hover:bg-red-600 px-3 py-1 rounded";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => deleteMapping(mapping.id));
-
-    actionCell.appendChild(deleteBtn);
-    row.appendChild(genreCell);
-    row.appendChild(moodCell);
-    row.appendChild(actionCell);
-
-    mappingsTable.appendChild(row);
-  });
-}
-
-// Add mapping
-mappingForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const mood_id = moodSelect.value;
-  const genre_id = genreSelect.value;
-
-  if (!mood_id || !genre_id) {
-    alert("Please select both a mood and a genre.");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost:3000/api/manager/mappings", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ mood_id, genre_id })
-    });
-
-    if (res.ok) {
-      alert("Mapping added!");
-      fetchMappings(); // Refresh table
-    } else {
-      const errData = await res.json();
-      alert(errData.error || "Failed to add mapping.");
-    }
-  } catch (err) {
-    console.error("Failed to add mapping:", err);
-    alert("Something went wrong.");
-  }
-});
-
-// Delete mapping
-async function deleteMapping(id) {
-  const confirmed = confirm("Are you sure you want to delete this mapping?");
-  if (!confirmed) return;
-
-  try {
-    const res = await fetch(`http://localhost:3000/api/manager/mappings/${id}`, {
-      method: "DELETE",
-      headers
-    });
-
-    if (res.ok) {
-      alert("Mapping deleted!");
-      fetchMappings(); // Refresh table
-    } else {
-      alert("Failed to delete mapping.");
-    }
-  } catch (err) {
-    console.error("Error deleting mapping:", err);
-  }
-}
-
-// Pin featured mood of the day
-async function pinMood() {
-  const moodId = featuredMoodSelect.value;
-
-  if (!moodId) {
-    alert("Please select a mood to pin.");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ mood_id: moodId })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      alert(data.message || "Featured mood pinned successfully!");
-    } else {
-      alert(data.error || "Failed to pin featured mood.");
-    }
-  } catch (err) {
-    console.error("Error pinning featured mood:", err);
-    alert("Something went wrong.");
-  }
-}
-
-async function fetchCurrentFeaturedMood() {
-  try {
-    const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
-      headers
-    });
-
-    if (!res.ok) throw new Error("Failed to fetch current featured mood");
-
-    const mood = await res.json();
-    currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
-  } catch (err) {
-    console.error("Error fetching current featured mood:", err);
-    currentFeaturedMood.textContent = "No featured mood is currently pinned.";
-  }
-}
-
