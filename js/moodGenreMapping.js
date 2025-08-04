@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //  Fetch moods for dropdown
   async function fetchMoods() {
-    const res = await fetch("http://localhost:3000/api/moods"); 
+    const res = await fetch('http://localhost:3000/api/mood/moods'); 
     const moods = await res.json();
     moods.forEach(mood => {
       const option = document.createElement("option");
