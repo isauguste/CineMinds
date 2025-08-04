@@ -48,7 +48,7 @@ exports.deleteMapping = async (req, res) => {
 };
 
 // Feature a mood (only one at a time)
-async function pinFeaturedMood(req, res) {
+exports.pinFeaturedMood = async (req, res) => {
   const { moodId } = req.body;
   try {
     await db.query('UPDATE moods SET is_featured = FALSE');
