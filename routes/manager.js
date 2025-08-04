@@ -14,5 +14,8 @@ router.post('/mappings', requireManager, managerController.addMapping);
 // DELETE a mapping (Manager only)
 router.delete('/mappings/:id', requireManager, managerController.deleteMapping);
 
+// POST to feature a mood (Manager only)
+router.post('/featured-mood', requireManager, managerController.pinFeaturedMood);
+
 module.exports = router;
 
