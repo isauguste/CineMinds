@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchMoods();
   fetchGenres();
   fetchMappings();
+  fetchCurrentFeaturedMood();
 });
 
 const token = localStorage.getItem("token");
@@ -15,6 +16,7 @@ const genreSelect = document.getElementById("genreSelect");
 const mappingForm = document.getElementById("mappingForm");
 const mappingsTable = document.getElementById("mappingsTable");
 const featuredMoodSelect = document.getElementById("featuredMoodSelect");
+const currentFeaturedMood = document.getElementById("currentFeaturedMood");
 
 // Fetch moods for both mapping and featured mood selection
 async function fetchMoods() {
@@ -181,6 +183,22 @@ async function pinMood() {
   } catch (err) {
     console.error("Error pinning featured mood:", err);
     alert("Something went wrong.");
+  }
+}
+
+async function fetchCurrentFeaturedMood() {
+  try {
+    const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
+      headers
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch current featured mood");
+
+    const mood = await res.json();
+    currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
+  } catch (err) {
+    console.error("Error fetching current featured mood:", err);
+    currentFeaturedMood.textContent = "No featured mood is currently pinned.";
   }
 }
 
