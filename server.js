@@ -24,9 +24,9 @@ const managerRoutes = require('./routes/manager');
 // Register routes
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', moviesRouter);
-app.use('/api', moodRoutes);
+app.use('/api/mood', moodRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api', genreRoutes);        
+app.use('/api/genres', genreRoutes);        
 app.use('/api/manager', managerRoutes);
 
 const PORT = process.env.PORT || 3000;
