@@ -22,10 +22,12 @@ function requireAdmin(req, res, next) {
   }
   next();
 }
+const authenticateToken = require('./authenticateToken');
 
 module.exports = {
   requireLogin,
   requireManager,
   requireAdmin,
+  authenticateToken,
 };
 
