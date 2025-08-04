@@ -47,3 +47,16 @@ exports.deleteMapping = async (req, res) => {
   }
 };
 
+// Feature a mood (only one at a time)
+async function pinFeaturedMood(req, res) {
+  const { moodId } = req.body;
+  try {
+    await db.query('UPDATE moods SET is_featured = FALSE');
+    await db.query('UPDATE moods SET is_featured = TRUE WHERE id = ?', [moodId]);
+    res.json({ message: 'Featured mood updated successfully.' });
+  } catch (err) {
+    console.error('[ERROR] pinFeaturedMood:', err);
+    res.status(500).json({ error: 'Failed to feature mood.' });
+  }
+};
+
