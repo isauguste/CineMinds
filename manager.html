@@ -8,8 +8,42 @@
 </head>
 <body class="bg-gradient-to-br from-purple-800 to-red-900 text-white min-h-screen">
 
-  <!-- Reusable Navbar -->
-  <script src="components/navbar.js"></script>
+  <!-- Navigation bar for manager.html -->
+<nav class="bg-gradient-to-r from-purple-800 to-red-800 text-white px-6 py-4 shadow-md">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <div class="text-2xl font-bold">MoodFlix Manager</div>
+    <ul class="flex space-x-6 text-lg font-medium" id="manager-nav-links">
+      <li><a href="#reviewQueue" class="hover:text-red-300 transition">Moderate Reviews</a></li>
+      <li><a href="/moodGenreMapping.html" class="hover:text-red-300 transition">Genre Mapping</a></li>
+      <li><a href="/logout.html" class="hover:text-red-300 transition">Logout</a></li
+    </ul>
+  </div>
+</nav>
+
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const navLinks = document.getElementById("manager-nav-links");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (token) {
+      const logoutItem = document.createElement("li");
+      const logoutLink = document.createElement("a");
+      logoutLink.textContent = "Logout";
+      logoutLink.href = "#";
+      logoutLink.className = "hover:text-red-300 transition";
+      logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/login.html";
+      });
+
+      logoutItem.appendChild(logoutLink);
+      navLinks.appendChild(logoutItem);
+    }
+  });
+ </script>
+
 
   <main class="max-w-6xl mx-auto px-4 py-8">
     <h1 class="text-4xl font-bold mb-6">Manager Dashboard</h1>
