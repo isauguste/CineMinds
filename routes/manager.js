@@ -2,13 +2,17 @@ const express = require('express');
 const router = express.Router();
 const managerController = require('../controllers/managerController');
 
-// GET all mappings
-router.get('/mappings', managerController.getMappings);
+// Import middleware
+const { requireManager } = require('../utils/authMiddleware');
 
-// POST new mapping
-router.post('/mappings', managerController.addMapping);
+// GET all mappings (Manager only)
+router.get('/mappings', requireManager, managerController.getMappings);
 
-// DELETE a mapping
-router.delete('/mappings/:id', managerController.deleteMapping);
+// POST new mapping (Manager only)
+router.post('/mappings', requireManager, managerController.addMapping);
+
+// DELETE a mapping (Manager only)
+router.delete('/mappings/:id', requireManager, managerController.deleteMapping);
 
 module.exports = router;
+
