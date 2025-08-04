@@ -18,12 +18,16 @@ const authRoutes = require('./routes/auth');
 const moviesRouter = require('./routes/movies');
 const moodRoutes = require('./routes/mood');
 const userRoutes = require('./routes/user');
+const genreRoutes = require('./routes/genres');
+const managerRoutes = require('./routes/manager');
 
 // Register routes
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', moviesRouter);
 app.use('/api', moodRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', genreRoutes);        
+app.use('/api/manager', managerRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
