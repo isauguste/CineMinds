@@ -44,6 +44,17 @@
       <button type="submit" class="mt-4 bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Add Mapping</button>
     </form>
 
+    <!-- Pin a Featured Mood Section -->
+    <section class="bg-gray-800 p-6 rounded-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Pin a Featured Mood</h2>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <select id="featuredMoodSelect" class="w-full sm:w-auto p-2 rounded text-black">
+          <option value="">-- Select Mood --</option>
+        </select>
+        <button onclick="pinMood()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Pin Mood</button>
+      </div>
+    </section>
+
     <!-- Existing Mappings Table -->
     <table class="w-full bg-gray-800 rounded-lg overflow-hidden">
       <thead>
