@@ -1,71 +1,84 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  if (!token) {
-  alert("Unauthorized: No token found");
-  window.location.href = "/login.html";
-}
-  const headers = {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  };
+document.addEventListener('DOMContentLoaded', () => {
+  fetchPendingReviews();
+});
 
-  const reviewsTable = document.getElementById("pendingReviewsTable");
+async function fetchPendingReviews() {
+  const token = localStorage.getItem('token'); // Must exist
+  const reviewsTable = document.querySelector('#reviewsTableBody'); // tbody element
 
-  async function fetchPendingReviews() {
-    try {
-      const res = await fetch("http://localhost:3000/api/manager/reviews/pending", { headers });
-      const reviews = await res.json();
-      renderReviewTable(reviews);
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-      reviewsTable.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error loading reviews</td></tr>`;
-    }
+  if (!token || !reviewsTable) {
+    console.error('Token or table body is missing.');
+    return;
   }
 
-  function renderReviewTable(reviews) {
-    reviewsTable.innerHTML = "";
-    if (!Array.isArray(reviews) || reviews.length === 0) {
-      reviewsTable.innerHTML = `<tr><td colspan="6" class="text-center text-gray-400 py-4">No pending reviews.</td></tr>`;
-      return;
+  try {
+    const res = await fetch('http://localhost:3000/api/manager/reviews/pending', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Error ${res.status}: ${errText}`);
     }
 
+    const reviews = await res.json();
+    reviewsTable.innerHTML = '';
+
     reviews.forEach(review => {
-      const row = document.createElement("tr");
+      const row = document.createElement('tr');
+
       row.innerHTML = `
-        <td class="px-4 py-2">${review.movie_title}</td>
-        <td class="px-4 py-2">${review.content}</td>
-        <td class="px-4 py-2">${review.username}</td>
-        <td class="px-4 py-2">${review.mood}</td>
-        <td class="px-4 py-2">${new Date(review.created_at).toLocaleDateString()}</td>
-        <td class="px-4 py-2 space-x-2 text-center">
-          <button class="approve-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded" data-id="${review.id}">Approve</button>
-          <button class="reject-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-id="${review.id}">Reject</button>
-        </td>`;
+        <td>${review.movie_title}</td>
+        <td>${review.text}</td>
+        <td>${review.username}</td>
+        <td>${review.mood || 'N/A'}</td>
+        <td>${new Date(review.created_at).toLocaleDateString()}</td>
+        <td>
+          <button onclick="approveReview('${review.id}')" class="text-green-500">Approve</button>
+          <button onclick="rejectReview('${review.id}')" class="text-red-500 ml-2">Reject</button>
+        </td>
+      `;
+
       reviewsTable.appendChild(row);
     });
 
-    document.querySelectorAll(".approve-btn").forEach(btn => {
-      btn.addEventListener("click", () => updateReviewStatus(btn.dataset.id, "approve"));
-    });
-    document.querySelectorAll(".reject-btn").forEach(btn => {
-      btn.addEventListener("click", () => updateReviewStatus(btn.dataset.id, "reject"));
-    });
+  } catch (err) {
+    console.error('Error fetching reviews:', err);
+    alert('Failed to load reviews.');
   }
+}
 
-  async function updateReviewStatus(id, action) {
-    try {
-      const res = await fetch(`http://localhost:3000/api/manager/reviews/${id}/${action}`, {
-        method: "PUT",
-        headers
-      });
-      if (!res.ok) throw new Error();
-      alert(`Review ${action}d successfully.`);
-      fetchPendingReviews();
-    } catch (err) {
-      console.error(`${action} Error:`, err);
-      alert(`Could not ${action} review.`);
+async function approveReview(id) {
+  await handleReviewAction(id, 'approve');
+}
+
+async function rejectReview(id) {
+  await handleReviewAction(id, 'reject');
+}
+
+async function handleReviewAction(reviewId, action) {
+  const token = localStorage.getItem('token');
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/manager/reviews/${reviewId}/${action}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Error ${res.status}: ${errText}`);
     }
-  }
 
-  fetchPendingReviews();
-});
+    alert(`Review ${action}d successfully.`);
+    fetchPendingReviews(); // Refresh table
+  } catch (err) {
+    console.error(`Error during ${action}:`, err);
+    alert(`Failed to ${action} review.`);
+  }
+}
+
