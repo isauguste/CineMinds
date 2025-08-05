@@ -1,6 +1,8 @@
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const db = require('../config/db'); 
 const saltRounds = 10;
+const secretKey = process.env.JWT_SECRET;
 
 // REGISTER
 exports.registerUser = async (req, res) => {
@@ -65,9 +67,17 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid username or password.' });
     }
 
+    //Create and return JWT
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      secretKey,
+      { expiresIn: '1h' }
+    );
+
     // Return user info (or token later)
     res.status(200).json({
-      message: 'Login successful',
+      message: 'Login successful', 
+      token,
       user: { id: user.id, username: user.username, role: user.role }
     });
   } catch (err) {
