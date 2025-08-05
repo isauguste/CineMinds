@@ -1,4 +1,3 @@
-
 // LOGIN FORM HANDLER
 document.getElementById('loginForm')?.addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -15,20 +14,31 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
 
     const data = await res.json();
 
-    if (res.ok) { 
+    if (res.ok) {
+      // Store token and user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.user.username);
       localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userRole', data.user.role);
-      window.location.href = 'profile.html';
+
+      // Redirect based on user role
+      const role = data.user.role;
+      if (role === 'Manager') {
+        window.location.href = 'manager.html';
+      } else if (role === 'Admin') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'profile.html';
+      }
     } else {
       showError('login', data.message || 'Invalid credentials.');
     }
-  } catch (err) { 
-    console.error('Login Error:',err);
+  } catch (err) {
+    console.error('Login Error:', err);
     showError('login', 'Something went wrong. Please try again.');
   }
 });
+
 
 // REGISTER FORM HANDLER
 document.getElementById('registerForm')?.addEventListener('submit', async function (e) {
