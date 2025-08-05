@@ -11,12 +11,11 @@ exports.getPendingReviews = async (req, res) => {
         m.title AS movie_title, 
         u.username
       FROM reviews r
-      JOIN users u ON r.user_id = u.user_id
+      JOIN users u ON r.user_id = u.id
       JOIN movies m ON r.movie_id = m.movie_id
       WHERE r.deleted_at IS NULL
     `);
 
-    console.log("Query successful. Rows:", rows);
     res.json(rows);
   } catch (err) {
     console.error('Error fetching pending reviews:', err);
