@@ -3,16 +3,16 @@ const db = require('../config/db');
 exports.getPendingReviews = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        r.review_id, 
-        r.review_text, 
-        r.created_at, 
-        r.mood_tag, 
-        m.title AS movie_title, 
+      SELECT
+        r.review_id,
+        r.review_text,
+        r.created_at,
+        r.mood_tag,
+        m.title AS movie_title,
         u.username
       FROM reviews r
       JOIN users u ON r.user_id = u.id
-      JOIN movies m ON r.movie_id = m.movie_id
+      JOIN movies m ON r.movie_id = m.id
       WHERE r.deleted_at IS NULL
     `);
 
