@@ -23,6 +23,7 @@ const genreRoutes = require('./routes/genres');
 const managerRoutes = require('./routes/manager');
 const moderationRoutes = require('./routes/moderation');
 const adminRoutes = require('./routes/admin'); 
+const reviewRoutes = require('./routes/reviews');
 
 // Register routes
 app.use('/api/auth', authRoutes);
@@ -33,7 +34,7 @@ app.use('/api/genres', genreRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/moderation', moderationRoutes); 
 app.use('/api/admin', adminRoutes);
-
+app.use('/api/reviews', reviewRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
