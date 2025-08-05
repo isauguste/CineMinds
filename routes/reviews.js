@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const reviewController = require('../controllers/reviewController');
+const reviewController = require('../controllers/reviewsController');
 const { authenticateToken, requireManager } = require('../utils/authMiddleware');
 
 // GET all pending reviews (Manager only)
