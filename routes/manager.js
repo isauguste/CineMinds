@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const managerController = require('../controllers/managerController');
+const { getFeaturedMood, setFeaturedMood } = require('../controllers/managerController');
 
 // Import middleware
 const { authenticateToken, requireManager } = require('../utils/authMiddleware');
@@ -15,7 +16,10 @@ router.post('/mappings', authenticateToken, requireManager, managerController.ad
 router.delete('/mappings/:id', authenticateToken, requireManager, managerController.deleteMapping);
 
 // POST to feature a mood (Manager only)
-router.post('/featured-mood', authenticateToken, requireManager, managerController.pinFeaturedMood);
+router.post('/featured-mood', authenticateToken, requireManager, setFeaturedMood);
+
+// GET the currently pinned featured mood
+router.get('/featured-mood', authenticateToken, requireManager, getFeaturedMood);
 
 module.exports = router;
 
