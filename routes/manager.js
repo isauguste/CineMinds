@@ -9,7 +9,7 @@ const { authenticateToken, requireManager } = require('../utils/authMiddleware')
 router.get('/mappings', authenticateToken, requireManager, managerController.getMappings);
 
 // POST new mapping (Manager only)
-router.post('/mappings', authenticateToken, requireManager, managerController.addMapping);
+router.post('/mappings', authenticateToken, requireManager, managerController.createMapping);
 
 // DELETE a mapping (Manager only)
 router.delete('/mappings/:id', authenticateToken, requireManager, managerController.deleteMapping);
