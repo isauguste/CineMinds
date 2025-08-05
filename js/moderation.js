@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchPendingReviews(token, table) {
   try {
-    const res = await fetch('http://localhost:3000/api/reviews', {
+    const res = await fetch('http://localhost:3000/api/reviews/pending', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -56,5 +56,4 @@ async function fetchPendingReviews(token, table) {
     console.error("Failed to load pending reviews:", err);
   }
 }
-
 
