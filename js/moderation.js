@@ -15,10 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  console.log("Token:", token);
-  console.log("Role:", role);
-  console.log("Table Element:", reviewsTable);
-
   fetchPendingReviews(token, reviewsTable);
 });
 
