@@ -16,6 +16,7 @@ exports.getPendingReviews = async (req, res) => {
       WHERE r.deleted_at IS NULL
     `);
 
+    console.log("Query successful. Rows:", rows);
     res.json(rows);
   } catch (err) {
     console.error('Error fetching pending reviews:', err);
