@@ -8,16 +8,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const moodSelect = document.getElementById("moodSelect");
   const genreSelect = document.getElementById("genreSelect");
   const mappingForm = document.getElementById("mappingForm");
-  const mappingsTable = document.getElementById("mappingsTable");
+  const mappingsTable = document.getElementById("mappingsTable"); 
+  const pinButton = document.querySelector("#pinMoodButton");
+  const featuredMoodSelect = document.querySelector("#featuredMoodSelect");
+  const currentFeaturedMood = document.querySelector("#currentFeaturedMood");
 
   async function fetchMoods() {
     const res = await fetch("http://localhost:3000/api/mood/moods", { headers });
     const moods = await res.json();
     moods.forEach((mood) => {
-      const option = document.createElement("option");
-      option.value = mood.id;
-      option.textContent = mood.mood_label;
-      moodSelect.appendChild(option);
+      const option1 = document.createElement("option");
+      option1.value = mood.id;
+      option1.textContent = mood.mood_label;
+      moodSelect.appendChild(option1);
+
+      const option2 = document.createElement("option");
+      option2.value = mood.id;
+      option2.textContent = mood.mood_label;
+      featuredMoodSelect.appendChild(option2);
     });
   }
 
@@ -108,8 +116,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  if (pinButton && featuredMoodSelect) {
+    pinButton.addEventListener("click", async () => {
+      const moodId = featuredMoodSelect.value;
+      if (!moodId) return alert("Please select a mood to pin.");
+
+      try {
+        const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ mood_id: moodId }),
+        });
+
+        const data = await res.json();
+        if (res.ok) alert(data.message || "Featured mood pinned successfully!");
+        else alert(data.error || "Failed to pin featured mood.");
+      } catch (err) {
+        console.error("Error pinning featured mood:", err);
+        alert("Something went wrong.");
+      }
+    });
+  }
+
+  async function fetchCurrentFeaturedMood() {
+    try {
+      const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
+        headers,
+      });
+
+      const mood = await res.json();
+      currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
+    } catch (err) {
+      console.error("Error fetching current featured mood:", err);
+      currentFeaturedMood.textContent = "No featured mood is currently pinned.";
+    }
+  }
+
+ 
   fetchMoods();
   fetchGenres();
   fetchMappings();
+  fetchCurrentFeaturedMood();
 });
 
