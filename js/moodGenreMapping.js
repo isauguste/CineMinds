@@ -150,6 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const mood = await res.json();
+      console.log("Fetched featured mood:", mood);
 
       if (!mood || !mood.mood_label) {
         currentFeaturedMood.textContent = "No featured mood is currently pinned.";
