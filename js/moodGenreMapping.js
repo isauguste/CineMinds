@@ -139,18 +139,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchCurrentFeaturedMood() {
-    try {
-      const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
-        headers,
-      });
+  try {
+    const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
+      headers,
+    });
 
-      const mood = await res.json();
-      currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
-    } catch (err) {
-      console.error("Error fetching current featured mood:", err);
+    const mood = await res.json();
+
+    if (!mood) {
       currentFeaturedMood.textContent = "No featured mood is currently pinned.";
+      currentFeaturedMood.style.color = "limegreen";
+    } else {
+      currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
+      currentFeaturedMood.style.color = "limegreen";
     }
+
+  } catch (err) {
+    console.error("Error fetching current featured mood:", err);
+    currentFeaturedMood.textContent = "No featured mood is currently pinned.";
+    currentFeaturedMood.style.color = "red";
   }
+ }
+
 
  
   fetchMoods();
