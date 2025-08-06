@@ -60,16 +60,23 @@ exports.pinFeaturedMood = async (req, res) => {
   }
 };
 
-// GET the currently featured mood
+// GET currently featured mood
 exports.getFeaturedMood = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT id, mood_label FROM moods WHERE is_featured = TRUE LIMIT 1');
+    const [rows] = await db.query(`
+      SELECT id, mood_label FROM moods
+      WHERE is_featured = TRUE
+      LIMIT 1
+    `);
+
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'No featured mood found' });
+      return res.status(200).json(null); // No featured mood
     }
+
     res.json(rows[0]);
   } catch (err) {
     console.error('[ERROR getFeaturedMood]', err);
-    res.status(500).json({ error: 'Failed to fetch featured mood.' });
+    res.status(500).json({ error: 'Failed to get featured mood' });
   }
 };
+
