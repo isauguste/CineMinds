@@ -1,7 +1,5 @@
 
 // Middleware to ensure user is logged in
-const authenticateToken = require('./authenticateToken');
-
 function requireLogin(req, res, next) {
   authenticateToken(req, res, () => {
     if (!req.user) {
