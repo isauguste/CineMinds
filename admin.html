@@ -5,22 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard – MoodFlix</title>
   <script src="https://cdn.tailwindcss.com"></script>
-<!--  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const role = sessionStorage.getItem("role");
-      if (role !== "admin") {
-        window.location.href = "login.html";
-      }
-
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          sessionStorage.clear();
-          window.location.href = "login.html";
-        });
-      }
-    });
-</script> -->
 </head>
 <body class="bg-gradient-to-b from-purple-900 to-black text-white min-h-screen flex flex-col">
 
@@ -77,6 +61,7 @@
   <footer class="text-center text-gray-400 text-sm py-6">
     © 2025 MoodFlix Admin Panel
   </footer>
+  <script src="js/admin.js"></script>
 </body>
 </html>
 
