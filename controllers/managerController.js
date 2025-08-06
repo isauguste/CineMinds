@@ -47,19 +47,6 @@ exports.deleteMapping = async (req, res) => {
   }
 };
 
-// POST to set the featured mood
-exports.setFeaturedMood = async (req, res) => {
-  const { mood_id } = req.body;
-  try {
-    await db.query('UPDATE moods SET is_featured = FALSE');
-    await db.query('UPDATE moods SET is_featured = TRUE WHERE id = ?', [mood_id]);
-    res.json({ message: 'Featured mood updated successfully.' });
-  } catch (err) {
-    console.error('[ERROR setFeaturedMood]', err);
-    res.status(500).json({ error: 'Failed to feature mood.' });
-  }
-};
-
 // Feature a mood (only one at a time)
 exports.pinFeaturedMood = async (req, res) => {
   const { moodId } = req.body;
@@ -73,4 +60,16 @@ exports.pinFeaturedMood = async (req, res) => {
   }
 };
 
-
+// GET the currently featured mood
+exports.getFeaturedMood = async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT id, mood_label FROM moods WHERE is_featured = TRUE LIMIT 1');
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No featured mood found' });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('[ERROR getFeaturedMood]', err);
+    res.status(500).json({ error: 'Failed to fetch featured mood.' });
+  }
+};
