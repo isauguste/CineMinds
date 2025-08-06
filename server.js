@@ -24,6 +24,7 @@ const managerRoutes = require('./routes/manager');
 const moderationRoutes = require('./routes/moderation');
 const adminRoutes = require('./routes/admin'); 
 const reviewsRoutes = require('./routes/reviews');
+const favoritesRoutes = require('./routes/favorites');
 
 // Register routes
 app.use('/api/auth', authRoutes);
@@ -34,7 +35,8 @@ app.use('/api/genres', genreRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/moderation', moderationRoutes); 
 app.use('/api/admin', adminRoutes);
-app.use('/api/reviews', reviewsRoutes);
+app.use('/api/reviews', reviewsRoutes); 
+app.use('/api/favorites', favoritesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
