@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // 🟣 Fetch and display movie details
+  // Fetch and display movie details
   fetch(`http://localhost:3000/api/movies/${movieId}`)
     .then(res => res.json())
     .then(movie => {
@@ -70,20 +70,20 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Favorite error:", err));
   });
 
-  // 📝 Submit review form
-  reviewForm.addEventListener("submit", (e) => {
+  // Submit review form
+   reviewForm.addEventListener("submit", (e) => {
     e.preventDefault();
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to submit a review.");
       return;
     }
 
-    const text = document.getElementById("reviewText").value;
-    const mood = document.getElementById("reviewMood").value;
-    const rating = document.getElementById("rating").value;
+    const review_text = document.getElementById("reviewText").value;
+    const mood_tag = document.getElementById("reviewMood").value;
 
-    if (!text || !mood || !rating) {
+    if (!review_text || !mood_tag) {
       alert("Please fill out all fields before submitting your review.");
       return;
     }
@@ -94,9 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ movieId, rating, text, mood }),
+      body: JSON.stringify({ movie_id: movieId, review_text, mood_tag }),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Bad Request");
+        return res.json();
+      })
       .then(data => {
         alert("Review submitted!");
         document.getElementById("reviewText").value = "";
@@ -104,11 +107,14 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("rating").value = "";
         loadReviews(movieId);
       })
-      .catch(err => console.error("Review error:", err));
+      .catch(err => {
+        console.error("Review submission failed:", err);
+        alert("Review submission failed.");
+      });
   });
 });
 
-// 🔄 Load all reviews for this movie
+// Load all reviews for this movie
 function loadReviews(movieId) {
   fetch(`http://localhost:3000/api/reviews/${movieId}`)
     .then(res => res.json())
@@ -117,9 +123,9 @@ function loadReviews(movieId) {
       if (Array.isArray(reviews) && reviews.length > 0) {
         container.innerHTML = reviews.map(r => `
           <div class="border-b border-gray-600 py-2">
-            <p class="text-sm text-gray-400">${r.username || 'Anonymous'} (${r.mood})</p>
-            <p class="text-yellow-300">${'⭐'.repeat(r.rating)}</p>
-            <p>${r.text}</p>
+            <p class="text-sm text-gray-400">${r.username || 'Anonymous'} (${r.mood_tag})</p>
+            <p class="text-yellow-300">${r.rating ? '⭐'.repeat(r.rating) : ''}</p>
+            <p>${r.review_text}</p>
           </div>
         `).join("");
       } else {
@@ -131,4 +137,5 @@ function loadReviews(movieId) {
       document.getElementById("reviewList").innerHTML = `<p class="text-sm text-red-400">Failed to load reviews.</p>`;
     });
 }
+
 
