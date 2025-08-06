@@ -55,20 +55,34 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("User fetch error:", err);
     });
 
-  // Fetch logs
+    // Fetch logs
   fetch("http://localhost:3000/api/admin/logs", { headers })
-    .then(res => res.text())
-    .then(text => {
-      logOutput.textContent = text || "No logs found.";
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        logOutput.innerHTML = '<tr><td colspan="5" class="px-4 py-2 text-red-300">No logs found.</td></tr>';
+        return;
+      }
+
+      logOutput.innerHTML = data.map(log => `
+        <tr class="border-t border-gray-700 hover:bg-gray-800">
+          <td class="px-4 py-3 text-center">${log.moderator || "-"}</td>
+          <td class="px-4 py-3 text-center capitalize">${log.action || "-"}</td>
+          <td class="px-4 py-3 text-center">${log.reason || "-"}</td>
+          <td class="px-4 py-3 text-center">${new Date(log.timestamp).toLocaleString() || "-"}</td>
+          <td class="px-4 py-3 text-center">${log.review_id ?? "-"}</td>
+        </tr>
+      `).join('');
     })
     .catch(err => {
-      logOutput.textContent = "Failed to load logs.";
+      logOutput.innerHTML = '<tr><td colspan="5" class="px-4 py-2 text-red-300">Failed to load logs.</td></tr>';
       console.error("Log fetch error:", err);
     });
 
+
   // Reset cache
   resetCacheBtn.addEventListener("click", () => {
-    fetch("http://localhost:3000/api/admin/cache/reset", {
+    fetch("http://localhost:3000/api/admin/reset-cache", {
       method: "POST",
       headers,
     })
