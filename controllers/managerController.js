@@ -49,14 +49,20 @@ exports.deleteMapping = async (req, res) => {
 
 // Feature a mood (only one at a time)
 exports.pinFeaturedMood = async (req, res) => {
-  const { moodId } = req.body;
+  const { mood_id } = req.body;
+  if (!mood_id) return res.status(400).json({ error: "Mood ID is required." });
+
   try {
-    await db.query('UPDATE moods SET is_featured = FALSE'); // Unpin all
-    await db.query('UPDATE moods SET is_featured = TRUE WHERE id = ?', [moodId]); // Pin selected
-    res.json({ message: 'Featured mood updated successfully.' });
+    // Ensure only one featured mood exists
+    await db.query(`DELETE FROM featured_mood`);
+
+    // Insert the new featured mood
+    await db.query(`INSERT INTO featured_mood (mood_id) VALUES (?)`, [mood_id]);
+
+    res.json({ message: "Featured mood updated successfully." });
   } catch (err) {
-    console.error('[ERROR] pinFeaturedMood:', err);
-    res.status(500).json({ error: 'Failed to feature mood.' });
+    console.error("Error pinning featured mood:", err);
+    res.status(500).json({ error: "Failed to pin featured mood." });
   }
 };
 
@@ -64,19 +70,21 @@ exports.pinFeaturedMood = async (req, res) => {
 exports.getFeaturedMood = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT id, mood_label FROM moods
-      WHERE is_featured = TRUE
+      SELECT m.id, m.mood_label
+      FROM moods m
+      JOIN featured_mood f ON m.id = f.mood_id
       LIMIT 1
     `);
 
     if (rows.length === 0) {
-      return res.status(200).json(null); // No featured mood
+      return res.status(200).json(null);
     }
 
-    res.status(200).json(rows[0]);
+    res.json(rows[0]);
   } catch (err) {
-    console.error('[ERROR getFeaturedMood]', err);
-    res.status(500).json({ error: 'Failed to get featured mood' });
+    console.error("Error fetching featured mood:", err);
+    res.status(500).json({ error: "Failed to fetch featured mood." });
   }
 };
+
 
