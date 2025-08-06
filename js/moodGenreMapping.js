@@ -129,8 +129,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const data = await res.json();
-        if (res.ok) alert(data.message || "Featured mood pinned successfully!");
-        else alert(data.error || "Failed to pin featured mood.");
+
+        if (res.ok) {
+          alert(data.message || "Featured mood pinned successfully!");
+          await fetchCurrentFeaturedMood();  //Ensure UI updates
+        } else {
+          alert(data.error || "Failed to pin featured mood.");
+        }
       } catch (err) {
         console.error("Error pinning featured mood:", err);
         alert("Something went wrong.");
@@ -139,30 +144,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchCurrentFeaturedMood() {
-  try {
-    const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
-      headers,
-    });
+    try {
+      const res = await fetch("http://localhost:3000/api/manager/featured-mood", {
+        headers,
+      });
 
-    const mood = await res.json();
+      const mood = await res.json();
 
-    if (!mood) {
-      currentFeaturedMood.textContent = "No featured mood is currently pinned.";
-      currentFeaturedMood.style.color = "limegreen";
-    } else {
-      currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
-      currentFeaturedMood.style.color = "limegreen";
+      if (!mood || !mood.mood_label) {
+        currentFeaturedMood.textContent = "No featured mood is currently pinned.";
+      } else {
+        currentFeaturedMood.textContent = `Currently pinned mood: ${mood.mood_label}`;
+      }
+    } catch (err) {
+      console.error("Error fetching current featured mood:", err);
+      currentFeaturedMood.textContent = "Failed to load featured mood.";
     }
-
-  } catch (err) {
-    console.error("Error fetching current featured mood:", err);
-    currentFeaturedMood.textContent = "No featured mood is currently pinned.";
-    currentFeaturedMood.style.color = "red";
   }
- }
 
-
- 
+  // Initialize page
   fetchMoods();
   fetchGenres();
   fetchMappings();
