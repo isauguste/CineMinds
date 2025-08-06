@@ -1,11 +1,16 @@
 
 // Middleware to ensure user is logged in
+const authenticateToken = require('./authenticateToken');
+
 function requireLogin(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized: Please login' });
-  }
-  next();
+  authenticateToken(req, res, () => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: Please login' });
+    }
+    next();
+  });
 }
+
 
 // Middleware for Manager role
 function requireManager(req, res, next) {
