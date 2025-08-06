@@ -73,7 +73,7 @@ exports.getFeaturedMood = async (req, res) => {
       return res.status(200).json(null); // No featured mood
     }
 
-    res.json(rows[0]);
+    res.status(200).json(rows[0]);
   } catch (err) {
     console.error('[ERROR getFeaturedMood]', err);
     res.status(500).json({ error: 'Failed to get featured mood' });
