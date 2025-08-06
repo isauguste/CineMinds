@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       // Send to backend 
-      const res = await fetch("http://localhost:3000/api/analyzeMood", {
+      const res = await fetch("http://localhost:3000/api/mood/analyzeMood", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
