@@ -61,12 +61,14 @@
         </select>
       </div>
       <div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-      <div id="favoritesPagination" class="mt-4 text-center space-x-2">
-        <!-- Pagination buttons go here --> 
-	<button id="prevBtn" class="pagination-btn">Previous</button>
-        <button id="nextBtn" class="pagination-btn ml-4">Next</button>
-     </div>
-     <div id="emptyMessage" class="text-red-400 mt-2 hidden"></div>
+        <!-- Pagination-->
+	  <div id="favoritesPagination" class="mt-6 flex justify-center space-x-4">
+     <button id="prevBtn" class="pagination-btn px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded disabled:opacity-50">Previous</button>
+     <button id="nextBtn" class="pagination-btn px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded disabled:opacity-50">Next</button>
+   </div>
+  	 <!-- Message -->
+   <div id="emptyMessage" class="text-red-400 mt-2 hidden text-center"></div>
+ </div> 	
 
     <!-- Reviews Section -->
     <div class="bg-indigo-800 rounded-xl shadow-md p-6 mb-8 max-w-4xl mx-auto">
