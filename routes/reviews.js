@@ -15,5 +15,8 @@ router.get('/pending', authenticateToken, requireManager, reviewController.getPe
 
 router.patch('/:movieId', requireLogin, updateReview);
 
+// GET /api/reviews/user/:userId - Get reviews by user
+router.get('/user/:userId', reviewController.getReviewsByUserId);:wqqwqwqw
+
 module.exports = router;
 
