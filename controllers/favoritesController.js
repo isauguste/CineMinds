@@ -46,7 +46,7 @@ exports.getFavorites = async (req, res) => {
         m.title,
         m.poster_url,
         m.genre,
-        m.movie_year
+        m.year
       FROM favorites f
       JOIN movies m ON f.movie_id = m.id
       WHERE f.user_id = ?
