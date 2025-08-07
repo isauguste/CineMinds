@@ -41,7 +41,7 @@ exports.getFavorites = async (req, res) => {
       SELECT 
         f.id,
         f.movie_id,
-        f.rating,
+        f.rating AS avg_rating,
         f.added_at,
         m.title,
         m.poster_url,
