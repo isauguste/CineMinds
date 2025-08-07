@@ -8,15 +8,15 @@ const { authenticateToken, requireManager, requireLogin } = require('../utils/au
 router.post('/', authenticateToken, reviewController.submitReview);
 
 // GET /api/reviews/:movieId – fetch reviews for a movie
-router.get('/:movieId', reviewController.getReviewsByMovieId);
+router.get('/:movieId', reviewController.getReviewsByMovieId); 
+
+// GET /api/reviews/user/:userId - Get reviews by user
+router.get('/user/:userId', reviewController.getReviewsByUserId);
 
 // GET /api/reviews/pending – manager-only
 router.get('/pending', authenticateToken, requireManager, reviewController.getPendingReviews);
 
 router.patch('/:movieId', requireLogin, updateReview);
-
-// GET /api/reviews/user/:userId - Get reviews by user
-router.get('/user/:userId', reviewController.getReviewsByUserId);:wqqwqwqw
 
 module.exports = router;
 
