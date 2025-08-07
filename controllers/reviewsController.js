@@ -62,3 +62,24 @@ exports.getReviewsByMovieId = async (req, res) => {
   }
 };
 
+exports.updateReview = async (req, res) => {
+  const userId = req.user.id;
+  const { movieId } = req.params;
+  const { rating } = req.body;
+
+  try {
+    const [result] = await db.query(
+      'UPDATE favorites SET rating = ? WHERE user_id = ? AND movie_id = ?',
+      [rating, userId, movieId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Favorite not found for user/movie' });
+    }
+
+    res.json({ message: 'Rating updated successfully' });
+  } catch (err) {
+    console.error('Error updating rating:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
