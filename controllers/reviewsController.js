@@ -83,3 +83,23 @@ exports.updateReview = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+// GET /api/reviews/user/:userId - Get all reviews by a specific user
+exports.getReviewsByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT r.review_id, r.review_text, r.created_at, r.mood_tag, m.title AS movie_title
+      FROM reviews r
+      JOIN movies m ON r.movie_id = m.id
+      WHERE r.user_id = ? AND r.deleted_at IS NULL
+      ORDER BY r.created_at DESC
+    `, [userId]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching reviews by userId:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
