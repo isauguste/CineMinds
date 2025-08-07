@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { updateReview } = require('../controllers/reviewsController');
 const reviewController = require('../controllers/reviewsController');
-const { authenticateToken, requireManager } = require('../utils/authMiddleware');
+const { authenticateToken, requireManager, requireLogin } = require('../utils/authMiddleware');
 
 // POST /api/reviews – submit a review
 router.post('/', authenticateToken, reviewController.submitReview);
