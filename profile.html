@@ -4,359 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Profile – MoodFlix</title>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #2c0f5c, #1a012d);
-      color: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background-color: #0e0e2c;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      margin: 0;
-      color: #f94144;
-      font-size: 1.8rem;
-    }
-
-    nav a {
-      margin-left: 1rem;
-      color: #ffffff;
-      text-decoration: none;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .welcome {
-      font-size: 2rem;
-      margin-bottom: 2rem;
-      color: #f0f0f0;
-    }
-
-    .section {
-      width: 100%;
-      max-width: 1000px;
-      margin-bottom: 2rem;
-      background-color: #1a012d;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    .section h2 {
-      text-align: left;
-      border-bottom: 1px solid #f94144;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .favorites-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 1rem;
-    }
-
-    .favorite-card {
-      background-color: #2c0f5c;
-      border-radius: 8px;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    .review {
-      background-color: #2c0f5c;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 6px;
-    }
-
-    .pagination-btn {
-      background-color: #f94144;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .pagination-btn:disabled {
-      background-color: #999;
-      cursor: default;
-    }
-
-    .filter-sort-bar {
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .filter-sort-bar select {
-      padding: 0.5rem;
-      border-radius: 5px;
-      border: none;
-      background-color: #2c0f5c;
-      color: #f0f0f0;
-    }
-
-    .profile-details {
-      text-align: left;
-      margin-bottom: 1rem;
-    }
-
-    .profile-details p {
-      margin: 0.25rem 0;
-    }
-
-    .edit-profile-btn {
-      background-color: #f94144;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .edit-fields {
-      margin-top: 1rem;
-      text-align: left;
-    }
-
-    .edit-fields label {
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-
-    .edit-fields input {
-      width: 100%;
-      padding: 0.5rem;
-      border-radius: 5px;
-      border: none;
-      margin-bottom: 1rem;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background-color: #0e0e2c;
-      color: #aaa;
-      font-size: 0.9rem;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>
-    <h1>MoodFlix</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="logout.html">Logout</a>
+<body class="bg-gradient-to-b from-indigo-950 via-purple-900 to-black text-white min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-900 via-purple-700 to-pink-600 shadow-lg px-6 py-4 flex items-center justify-between">
+    <h1 class="text-white text-4xl font-bold">MoodFlix</h1>
+    <nav class="space-x-4 text-lg">
+      <a href="index.html" class="text-white hover:underline">Home</a>
+      <a href="logout.html" class="text-white hover:underline">Logout</a>
     </nav>
   </header>
-  <main>
-    <div class="welcome" id="welcomeMsg">Welcome back!</div>
 
-    <div class="section">
-      <h2>Your Profile</h2>
-      <div class="profile-details">
-        <p><strong>Username:</strong> <span id="usernameDisplay"></span></p>
-        <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
+  <!-- Main Content -->
+  <main class="flex-1 container mx-auto px-4 py-8">
+
+    <!-- Welcome -->
+    <div id="welcomeMsg" class="text-2xl font-semibold mb-8 text-center">Welcome back!</div>
+
+    <!-- Profile Section -->
+    <div class="bg-indigo-800 rounded-xl shadow-md p-6 mb-8 max-w-3xl mx-auto">
+      <h2 class="text-xl font-semibold border-b border-pink-500 pb-2 mb-4">Your Profile</h2>
+      <div class="mb-4 space-y-1">
+        <p><strong>Username:</strong> <span id="usernameDisplay" class="text-pink-300"></span></p>
+        <p><strong>Email:</strong> <span id="emailDisplay" class="text-pink-300"></span></p>
       </div>
-      <button class="edit-profile-btn" onclick="toggleEditProfile()">Edit Profile</button>
-      <div id="editProfileForm" class="edit-fields" style="display:none;">
-        <label for="editUsername">Username</label>
-        <input type="text" id="editUsername">
-        <label for="editEmail">Email</label>
-        <input type="email" id="editEmail">
-        <button class="edit-profile-btn" onclick="saveProfileEdits()">Save</button>
+      <button onclick="toggleEditProfile()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-md">Edit Profile</button>
+      <div id="editProfileForm" class="mt-4 hidden space-y-4">
+        <div>
+          <label for="editUsername" class="block mb-1">Username</label>
+          <input type="text" id="editUsername" class="w-full rounded-md p-2 bg-gray-900 text-white border border-gray-700" />
+        </div>
+        <div>
+          <label for="editEmail" class="block mb-1">Email</label>
+          <input type="email" id="editEmail" class="w-full rounded-md p-2 bg-gray-900 text-white border border-gray-700" />
+        </div>
+        <button onclick="saveProfileEdits()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-md">Save</button>
       </div>
     </div>
 
-    <div class="section" id="favoritesSection">
-      <h2>Your Favorites</h2>
-      <div class="filter-sort-bar">
-        <select id="sortSelect">
+    <!-- Favorites Section -->
+    <div class="bg-indigo-800 rounded-xl shadow-md p-6 mb-8 max-w-6xl mx-auto">
+      <h2 class="text-xl font-semibold border-b border-pink-500 pb-2 mb-4">Your Favorites</h2>
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+        <select id="sortSelect" class="bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
           <option value="title">Sort by Title</option>
           <option value="genre">Sort by Genre</option>
           <option value="date">Sort by Date Added</option>
         </select>
-        <select id="genreFilter">
+        <select id="genreFilter" class="bg-gray-900 text-white border border-gray-600 rounded px-3 py-2">
           <option value="all">All Genres</option>
           <option value="action">Action</option>
           <option value="comedy">Comedy</option>
           <option value="drama">Drama</option>
         </select>
       </div>
-      <div class="favorites-grid" id="favoritesGrid"></div>
-      <div id="favoritesPagination" style="margin-top: 1rem;"></div>
+      <div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+      <div id="favoritesPagination" class="mt-4 text-center space-x-2">
+        <!-- Pagination buttons go here --> 
+	<button id="prevBtn" class="pagination-btn">Previous</button>
+        <button id="nextBtn" class="pagination-btn ml-4">Next</button>
+     </div>
+     <div id="emptyMessage" class="text-red-400 mt-2 hidden"></div>
+
+    <!-- Reviews Section -->
+    <div class="bg-indigo-800 rounded-xl shadow-md p-6 mb-8 max-w-4xl mx-auto">
+      <h2 class="text-xl font-semibold border-b border-pink-500 pb-2 mb-4">Your Reviews</h2>
+      <div id="reviewsList" class="space-y-4">
+        <!-- Reviews injected here -->
+      </div>
     </div>
 
-    <div class="section" id="reviewsSection">
-      <h2>Your Reviews</h2> 
-      <div id="reviewsList"></div>
-    </div>
   </main>
-  <footer>
+
+  <!-- Footer -->
+  <footer class="bg-indigo-950 text-center text-sm text-gray-400 py-4">
     © 2025 MoodFlix. All rights reserved.
   </footer>
 
+  <!-- Scripts -->
   <script>
     const username = localStorage.getItem('username');
     const userId = localStorage.getItem('userId');
-    const hasVisitedProfile = localStorage.getItem('hasVisitedProfile');
-
-    if (username) {
-      const message = hasVisitedProfile 
-        ? `Welcome back, ${username}! We Miss You!`
-        : `Welcome to your profile, ${username}!`;
-
-      document.getElementById('welcomeMsg').textContent = message;
-      localStorage.setItem('hasVisitedProfile', 'true');
-    }
-
-    async function fetchUserProfile() {
-      try {
-        const res = await fetch(`http://localhost:3000/api/user/${userId}`);
-        
-	if (!res.ok) { 
-		throw new Error('Failed to fetch profile: ${res.status}'); 
-	}
-
-	const data = await res.json();
-        document.getElementById('usernameDisplay').textContent = data.username;
-        document.getElementById('emailDisplay').textContent = data.email;
-        document.getElementById('editUsername').value = data.username;
-        document.getElementById('editEmail').value = data.email;
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-      }
-    }
-
-    async function saveProfileEdits() {
-      const updatedUsername = document.getElementById('editUsername').value;
-      const updatedEmail = document.getElementById('editEmail').value;
-      try {
-        const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: updatedUsername, email: updatedEmail })
-        });
-        if (res.ok) {
-          localStorage.setItem('username', updatedUsername);
-          fetchUserProfile();
-          toggleEditProfile();
-        } else {
-          alert('Update failed');
-        }
-      } catch (err) {
-        console.error('Error updating profile:', err);
-      }
-    }
-
-    function toggleEditProfile() {
-      const form = document.getElementById('editProfileForm');
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    }
-
-    fetchUserProfile();
-
-    let currentPage = 1;
-    const perPage = 10;
-
-    function loadFavorites(page = 1) {
-      const favorites = Array.from({ length: 23 }, (_, i) => ({
-        title: `Movie ${i + 1}`,
-        genre: ['action', 'comedy', 'drama'][i % 3],
-        date: new Date(Date.now() - i * 86400000)
-      }));
-
-      const sortKey = document.getElementById('sortSelect').value;
-      const genreFilter = document.getElementById('genreFilter').value;
-
-      let filtered = favorites;
-      if (genreFilter !== 'all') {
-        filtered = filtered.filter(m => m.genre === genreFilter);
-      }
-
-      if (sortKey === 'title') {
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-      } else if (sortKey === 'genre') {
-        filtered.sort((a, b) => a.genre.localeCompare(b.genre));
-      } else if (sortKey === 'date') {
-        filtered.sort((a, b) => b.date - a.date);
-      }
-
-      const start = (page - 1) * perPage;
-      const end = start + perPage;
-      const favoritesGrid = document.getElementById('favoritesGrid');
-      const favoritesPagination = document.getElementById('favoritesPagination');
-
-      favoritesGrid.innerHTML = '';
-      filtered.slice(start, end).forEach(movie => {
-        const div = document.createElement('div');
-        div.className = 'favorite-card';
-        div.textContent = movie.title;
-        favoritesGrid.appendChild(div);
-      });
-
-      favoritesPagination.innerHTML = '';
-
-      if (page > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = 'Previous';
-        prevBtn.className = 'pagination-btn';
-        prevBtn.onclick = () => loadFavorites(page - 1);
-        favoritesPagination.appendChild(prevBtn);
-      }
-
-      if (end < filtered.length) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Next';
-        nextBtn.className = 'pagination-btn';
-        nextBtn.onclick = () => loadFavorites(page + 1);
-        favoritesPagination.appendChild(nextBtn);
-      }
-
-      currentPage = page;
-    }
-
-    function loadReviews() {
-      const reviews = [
-        { title: "Movie A", text: "Loved the cinematography!" },
-        { title: "Movie B", text: "Solid plot and acting." }
-      ];
-      const reviewsList = document.getElementById('reviewsList');
-      reviews.forEach(({ title, text }) => {
-        const div = document.createElement('div');
-        div.className = 'review';
-        div.innerHTML = `<strong>${title}</strong><p>${text}</p>`;
-        reviewsList.appendChild(div);
-      });
-    }
-
-    document.getElementById('sortSelect').addEventListener('change', () => loadFavorites(1));
-    document.getElementById('genreFilter').addEventListener('change', () => loadFavorites(1));
-
-    loadFavorites();
-    loadReviews();
   </script>
+  <script src="js/favorites.js"></script>
+  <script src="js/profile.js"></script>
 </body>
 </html>
 
