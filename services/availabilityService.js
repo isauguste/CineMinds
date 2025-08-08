@@ -71,41 +71,57 @@ function normalizeRapidApi(item) {
 }
 
 async function fetchFromRapidAPI({ title, year }) {
-  const url = process.env.STREAM_AVAIL_BASE; // v4 /shows/search/title
+  // Step 1: search by title (v4)
+  const searchUrl = process.env.STREAM_AVAIL_BASE;
   const params = {
-    title,                                         // required
-    country: process.env.STREAM_AVAIL_COUNTRY || "us",
-    show_type: "movie",                            // movies only
+    title,
+    show_type: "movie",
     output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
-    series_granularity: "show",                    
+    series_granularity: "show",
   };
-  if (year) params.year = year;                   
+  if (year) params.year = year;
 
-  const resp = await axios.get(url, {
-    params,
-    headers: {
-      "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
-      "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
-    },
-  });
+  const headers = {
+    "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
+    "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
+  };
 
-  
-  const results = resp?.data?.result || resp?.data?.results || [];
-  if (!results.length) return [];
+  const searchResp = await axios.get(searchUrl, { params, headers });
+  const results = searchResp?.data?.result || searchResp?.data?.results || [];
+  if (!Array.isArray(results) || results.length === 0) return [];
 
-  return normalizeRapidApi(results[0]);            
+  // Pick best match (first)
+  const match = results[0];
+  // id field differs across versions; v4 typically uses 'id'
+  const showId = match.id || match.showId || match._id;
+  if (!showId) return [];
+
+  // Step 2: fetch full show details (contains per-country streamingInfo)
+  const getShowUrl = `${process.env.STREAM_AVAIL_GET_SHOW}/${encodeURIComponent(showId)}`;
+  const getParams = {
+    country: (process.env.STREAM_AVAIL_COUNTRY || "us").toLowerCase(),
+    output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
+  };
+  const showResp = await axios.get(getShowUrl, { params: getParams, headers });
+  const show = showResp?.data || {};
+
+  // Normalize from the full show payload
+  return normalizeRapidApi(show);
 }
 
-async function getAvailability({ title, year, tmdbId, movieId }) {
+async function getAvailability({ title, year, tmdbId, movieId, nocache }) {
   const key = cacheKey({ title, year, tmdbId });
-  const cached = await getFromCache(key);
-  if (cached) return cached;
+
+  if (!nocache) {
+    const cached = await getFromCache(key);
+    if (cached) return cached;
+  }
 
   let normalized = [];
   try {
     normalized = await fetchFromRapidAPI({ title, year });
   } catch (e) {
-    console.error("RapidAPI fetch error:", e.message);
+    console.error("RapidAPI fetch error:", e.response?.status || e.message);
     normalized = [];
   }
 
