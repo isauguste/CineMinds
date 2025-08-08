@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <img src="${movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'}" alt="${movie.title}" class="rounded-lg w-full md:w-1/3" />
           <div class="flex-1 space-y-4">
             <h2 class="text-3xl font-bold text-white">${movie.title}</h2>
-            <p class="text-sm text-gray-300">Release Year: ${movie.movie_year || 'N/A'}</p>
+            <p class="text-sm text-gray-300">Release Year: ${movie.year || movie.movie_year || 'N/A'}</p>
             <p class="text-yellow-400">Rating: ${movie.rating || 'Not Rated'}</p>
             <p class="text-gray-200">${movie.description || 'No description available.'}</p>
             ${movie.trailer_url ? `
@@ -36,9 +36,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 🎥 Watch Trailer
               </a>
             ` : ''}
+
+            <!-- Where to Watch -->
+            <div class="mt-4">
+              <h3 class="text-xl font-semibold text-white">Where to Watch</h3>
+              <div id="detail-platforms" class="mt-2"></div>
+            </div>
           </div>
         </div>
       `;
+
+      // Render streaming availability chips
+      const platformsEl = document.getElementById("detail-platforms");
+      const year =
+        movie.year ||
+        movie.movie_year ||
+        movie.release_year ||
+        (movie.release_date ? String(movie.release_date).slice(0, 4) : "");
+
+      if (typeof renderAvailability === "function") {
+        renderAvailability(platformsEl, {
+          title: movie.title,
+          year,
+          id: movie.id || movieId,
+          tmdbId: movie.tmdb_id || movie.api_movie_id || ""
+        });
+      }
 
       loadReviews(movieId);
     })
@@ -47,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       container.innerHTML = `<p class="text-red-400">Failed to load movie details.</p>`;
     });
 
-  //  Favorite button
+  // Favorite button
   favoriteBtn.addEventListener("click", () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -64,14 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ movieId }),
     })
       .then(res => res.json())
-      .then(data => {
+      .then(() => {
         alert("Movie saved to favorites!");
       })
       .catch(err => console.error("Favorite error:", err));
   });
 
   // Submit review form
-   reviewForm.addEventListener("submit", (e) => {
+  reviewForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
@@ -100,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!res.ok) throw new Error("Bad Request");
         return res.json();
       })
-      .then(data => {
+      .then(() => {
         alert("Review submitted!");
         document.getElementById("reviewText").value = "";
         document.getElementById("reviewMood").value = "";
@@ -137,5 +160,4 @@ function loadReviews(movieId) {
       document.getElementById("reviewList").innerHTML = `<p class="text-sm text-red-400">Failed to load reviews.</p>`;
     });
 }
-
 
