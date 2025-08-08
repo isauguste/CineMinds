@@ -71,26 +71,29 @@ function normalizeRapidApi(item) {
 }
 
 async function fetchFromRapidAPI({ title, year }) {
-  const url = process.env.STREAM_AVAIL_BASE;
+  const url = process.env.STREAM_AVAIL_BASE; // v4 /shows/search/title
   const params = {
-    title,
+    title,                                         // required
     country: process.env.STREAM_AVAIL_COUNTRY || "us",
+    show_type: "movie",                            // movies only
     output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
-    show_type: "movie"
+    series_granularity: "show",                    
   };
-  if (year) params.year = year;
+  if (year) params.year = year;                   
 
   const resp = await axios.get(url, {
     params,
     headers: {
       "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
-      "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com"
-    }
+      "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
+    },
   });
 
-  const results = resp?.data?.result || [];
+  
+  const results = resp?.data?.result || resp?.data?.results || [];
   if (!results.length) return [];
-  return normalizeRapidApi(results[0]);
+
+  return normalizeRapidApi(results[0]);            
 }
 
 async function getAvailability({ title, year, tmdbId, movieId }) {
