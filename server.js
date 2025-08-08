@@ -37,6 +37,8 @@ app.use('/api/moderation', moderationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewsRoutes); 
 app.use('/api/favorites', favoritesRoutes);
+app.use("/api/availability", require("./routes/availability"));
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
