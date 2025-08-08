@@ -1,4 +1,3 @@
-
 // ------ Auth / globals ------
 const token = localStorage.getItem("token");
 if (!window.userId) {
@@ -82,7 +81,6 @@ function applyFilters() {
   } else if (sortVal === "genre") {
     filteredFavorites.sort((a, b) => a.genre.localeCompare(b.genre));
   } else if (sortVal === "date") {
-    // use favorites.added_at when available; fallback to date_added
     filteredFavorites.sort(
       (a, b) => new Date(b.added_at || b.date_added || 0) - new Date(a.added_at || a.date_added || 0)
     );
@@ -129,6 +127,9 @@ function renderPage() {
       <h3 class="text-lg font-bold mb-1">${movie.title}</h3>
       <p class="text-sm mb-2">${movie.genre || ""}</p>
 
+      <!-- Availability chips go here -->
+      <div class="platforms mb-2" id="platforms-${movie.movie_id}"></div>
+
       <div class="rating mb-2" data-movie-id="${movie.movie_id}" data-current-rating="${movie.user_rating || 0}">
         ${renderStarsInteractive(movie.user_rating || 0, movie.movie_id)}
       </div>
@@ -139,6 +140,19 @@ function renderPage() {
       </button>
     `;
     grid.appendChild(card);
+
+    // Fetch and render streamingavailability chips
+    // 
+    const year =
+      movie.year || movie.release_year || movie.releaseYear || movie.release_date?.slice(0, 4) || "";
+    const el = document.getElementById(`platforms-${movie.movie_id}`);
+    if (typeof renderAvailability === "function") {
+      renderAvailability(el, {
+        title: movie.title,
+        year,
+        id: movie.movie_id
+      });
+    }
   });
 
   attachStarListeners();
@@ -166,7 +180,6 @@ function attachStarListeners() {
       const rating = parseInt(e.target.dataset.rating, 10);
 
       try {
-        // PATCH the favorites endpoint to set the user's rating (stored in favorites.rating)
         const res = await fetch(`http://localhost:3000/api/favorites/${encodeURIComponent(movieId)}`, {
           method: "PATCH",
           headers: {
@@ -179,11 +192,10 @@ function attachStarListeners() {
         if (!res.ok) throw new Error("Rating update failed");
         const payload = await res.json(); // { movie_id, user_rating }
 
-        // Update local state
         const target = favorites.find((m) => String(m.movie_id) === String(movieId));
         if (target) target.user_rating = payload.user_rating ?? rating;
 
-        applyFilters(); // re-render stars with the new user rating
+        applyFilters();
       } catch (err) {
         console.error("Error updating rating", err);
         alert("Failed to update rating.");
@@ -245,7 +257,6 @@ async function removeFavorite(movieId) {
     return;
   }
 
-  // Disable button while deleting
   const btn = document.querySelector(`[data-remove="${movieId}"]`);
   const oldText = btn ? btn.textContent : null;
   if (btn) {
@@ -284,9 +295,7 @@ async function removeFavorite(movieId) {
 
     if (!res.ok) throw new Error("Failed to remove favorite");
 
-    // Refresh list from server to confirm change
     await fetchFavorites();
-
     console.log("Favorite removed:", movieId);
   } catch (err) {
     console.error("Error removing favorite:", err);
