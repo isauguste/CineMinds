@@ -34,32 +34,60 @@ exports.addFavorite = async (req, res) => {
 
 // Get user's favorite movies
 exports.getFavorites = async (req, res) => {
-  const userId = req.user.id;
-
   try {
-    const [favorites] = await db.query(`
-      SELECT 
-        f.id,
-        f.movie_id,
-        f.rating AS avg_rating,
-        f.added_at,
-        m.title,
-        m.poster_url,
-        m.genre,
-        m.year
-      FROM favorites f
-      JOIN movies m ON f.movie_id = m.id
-      WHERE f.user_id = ?
-      ORDER BY f.added_at DESC
-    `, [userId]);
+    const userId = req.user.id;
 
-    res.json(favorites);
+    const sql = `
+      SELECT
+        f.movie_id,
+        m.title,
+        m.genre,
+        m.poster_url,
+        COALESCE(f.rating, 0) AS user_rating
+      FROM favorites f
+      JOIN movies m ON m.id = f.movie_id
+      WHERE f.user_id = ?
+      ORDER BY m.title ASC
+    `;
+    const [rows] = await db.execute(sql, [userId]);
+    res.json(rows);
   } catch (err) {
-    console.error('Error fetching favorites:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('getFavorites error:', err);
+    res.status(500).json({ error: 'Failed to load favorites' });
   }
 };
 
+// Updates user's from favorite movies 
+exports.updateRating = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const movieId = req.params.movieId;
+    const { rating } = req.body;
+
+    if (rating == null || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'rating must be 1–5' });
+    }
+
+    // Try update first
+    const [upd] = await db.execute(
+      `UPDATE favorites SET rating = ? WHERE user_id = ? AND movie_id = ?`,
+      [rating, userId, movieId]
+    );
+
+    // If the movie isn’t in favorites, optionally insert it with a rating
+    if (upd.affectedRows === 0) {
+      await db.execute(
+        `INSERT INTO favorites (user_id, movie_id, rating) VALUES (?, ?, ?)`,
+        [userId, movieId, rating]
+      );
+    }
+
+    return res.json({ movie_id: Number(movieId), user_rating: Number(rating) });
+  } catch (err) {
+    console.error('updateRating error:', err);
+    res.status(500).json({ error: 'Failed to update rating' });
+  }
+};
 // Remove a movie from favorites
 exports.deleteFavorite = async (req, res) => {
   const userId = req.user.id;
