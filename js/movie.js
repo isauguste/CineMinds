@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
       container.innerHTML = `<p class="text-red-400">Failed to load movie details.</p>`;
     });
 
-  // ⭐ Favorite button
+  //  Favorite button
   favoriteBtn.addEventListener("click", () => {
     const token = localStorage.getItem("token");
     if (!token) {
