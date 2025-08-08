@@ -12,7 +12,6 @@ function cacheKey({ title, year, tmdbId }) {
   });
   return crypto.createHash("sha256").update(raw).digest("hex").slice(0, 64);
 }
-
 async function getFromCache(key) {
   const [rows] = await db.query(
     "SELECT payload_json, updated_at FROM availability_cache WHERE cache_key=?",
@@ -23,10 +22,21 @@ async function getFromCache(key) {
   const updated = new Date(rows[0].updated_at);
   const ageDays = (Date.now() - updated.getTime()) / 86400000;
   if (ageDays > TTL_DAYS) return null;
-  return rows[0].payload_json;
+
+  // payload_json is LONGTEXT -> parse if string
+  let payload = rows[0].payload_json;
+  if (typeof payload === "string") {
+    try {
+      payload = JSON.parse(payload);
+    } catch {
+      return null; // corrupted cache -> treat as miss
+    }
+  }
+  return payload;
 }
 
 async function saveToCache(key, movieId, payload) {
+  // store as string (
   await db.query(
     `INSERT INTO availability_cache (cache_key, movie_id, payload_json)
      VALUES (?, ?, ?)
