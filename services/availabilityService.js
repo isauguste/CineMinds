@@ -44,69 +44,121 @@ async function saveToCache(key, movieId, payload) {
     [key, movieId || null, JSON.stringify(payload)]
   );
 }
-
 function normalizeRapidApi(item) {
   const out = [];
-  const byCountry = item?.streamingInfo || {};
+  const si = item?.streamingInfo || {};
   const country = (process.env.STREAM_AVAIL_COUNTRY || "us").toLowerCase();
-  const entries = byCountry[country] || {};
+  const entries = si[country];
 
-  for (const provider of Object.keys(entries)) {
-    for (const offer of entries[provider]) {
+  if (!entries) return out;
+
+  // Case A: Object keyed by provider -> arrays of offers
+  if (!Array.isArray(entries) && typeof entries === "object") {
+    for (const provider of Object.keys(entries)) {
+      const offers = entries[provider] || [];
+      for (const offer of offers) {
+        out.push({
+          platform: provider,
+          access: offer.type || offer.streamingType || "unknown",
+          link: offer.link || offer.webUrl || null,
+        });
+      }
+    }
+  }
+
+  // Case B: Array of { service, streamingType, link }
+  if (Array.isArray(entries)) {
+    for (const offer of entries) {
       out.push({
-        platform: provider,
-        access: offer.type || "unknown",
-        link: offer.link || null
+        platform: offer.service || offer.provider || "unknown",
+        access: offer.streamingType || offer.type || "unknown",
+        link: offer.link || offer.webUrl || null,
       });
     }
   }
 
+  // Dedup by platform+access
   const seen = new Set();
   return out.filter(x => {
-    const k = `${x.platform}:${x.access}`;
+    const k = `${(x.platform || "").toLowerCase()}:${(x.access || "").toLowerCase()}`;
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
   });
 }
 
+
 async function fetchFromRapidAPI({ title, year }) {
-  // Step 1: search by title (v4)
-  const searchUrl = process.env.STREAM_AVAIL_BASE;
-  const params = {
-    title,
-    show_type: "movie",
-    output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
-    series_granularity: "show",
-  };
-  if (year) params.year = year;
+  const country = (process.env.STREAM_AVAIL_COUNTRY || "us").toLowerCase();
 
   const headers = {
     "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
     "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
   };
 
-  const searchResp = await axios.get(searchUrl, { params, headers });
-  const results = searchResp?.data?.result || searchResp?.data?.results || [];
-  if (!Array.isArray(results) || results.length === 0) return [];
+  async function search(params) {
+    const url = process.env.STREAM_AVAIL_BASE; // /shows/search/title
+    try {
+      const resp = await axios.get(url, { params, headers });
+      return resp?.data?.result || resp?.data?.results || [];
+    } catch (e) {
+      console.error(
+        "Search error:",
+        e.response?.status,
+        JSON.stringify(e.response?.data)?.slice(0, 400)
+      );
+      return null;
+    }
+  }
 
-  // Pick best match (first)
+  // Primary search params
+  const pA = {
+    title,
+    country, // <-- REQUIRED
+    show_type: "movie",
+    output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
+    series_granularity: "show",
+  };
+  if (year) pA.year = year;
+
+  let results = await search(pA);
+
+  // Fallback style (if needed)
+  if (!results) {
+    const pB = {
+      title,
+      country, // <-- REQUIRED
+      type: "movie",
+      output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
+    };
+    if (year) pB.year = year;
+    results = await search(pB);
+  }
+
+  if (!results || !Array.isArray(results) || results.length === 0) return [];
+
   const match = results[0];
-  // id field differs across versions; v4 typically uses 'id'
   const showId = match.id || match.showId || match._id;
   if (!showId) return [];
 
-  // Step 2: fetch full show details (contains per-country streamingInfo)
-  const getShowUrl = `${process.env.STREAM_AVAIL_GET_SHOW}/${encodeURIComponent(showId)}`;
-  const getParams = {
-    country: (process.env.STREAM_AVAIL_COUNTRY || "us").toLowerCase(),
-    output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
-  };
-  const showResp = await axios.get(getShowUrl, { params: getParams, headers });
-  const show = showResp?.data || {};
-
-  // Normalize from the full show payload
-  return normalizeRapidApi(show);
+  try {
+    const getShowUrl = `${process.env.STREAM_AVAIL_GET_SHOW}/${encodeURIComponent(showId)}`;
+    const getParams = {
+      country, // <-- REQUIRED
+      output_language: process.env.STREAM_AVAIL_OUTPUT_LANG || "en",
+      series_granularity: "show",
+    };
+    const showResp = await axios.get(getShowUrl, { params: getParams, headers });
+    const show = showResp?.data || {};
+    return normalizeRapidApi(show);
+  } catch (e) {
+    console.error(
+      "GetShow error:",
+      e.response?.status,
+      JSON.stringify(e.response?.data)?.slice(0, 400)
+    );
+    return [];
+  }
 }
 
 async function getAvailability({ title, year, tmdbId, movieId, nocache }) {
