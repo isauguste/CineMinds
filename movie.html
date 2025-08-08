@@ -7,20 +7,45 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-b from-fuchsia-700 via-pink-600 to-purple-700 min-h-screen text-white">
-  <header class="bg-gradient-to-r from-purple-900 to-indigo-900 p-4 shadow-md">
-    <h1 class="text-3xl font-bold ml-4">MoodFlix</h1>
-  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="bg-gradient-to-r from-purple-900 to-indigo-900 p-4 shadow-md">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-2xl font-bold">MoodFlix</a>
+      <div class="flex gap-6">
+        <a href="index.html" class="hover:underline">Home</a>
+        <a href="browse.html" class="hover:underline">Browse</a>
+        <a href="profile.html" class="hover:underline">Profile</a>
+      </div>
+    </div>
+  </nav>
 
   <main class="max-w-4xl mx-auto mt-10 p-6 bg-purple-900 bg-opacity-60 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
-      <span>🎥</span> Movie Details
-    </h2>
-    <div id="movieDetails" class="space-y-4 text-white">
-      <!-- Movie info gets injected here -->
+
+    <!-- Movie Header with Poster -->
+    <div id="movieHeader" class="flex flex-col md:flex-row gap-6 items-start mb-6">
+      <img id="moviePoster" src="" alt="Movie Poster" class="w-48 h-auto rounded-lg shadow-lg hidden">
+      <div>
+        <h2 id="movieTitle" class="text-3xl font-semibold"></h2>
+        <p id="movieYear" class="text-pink-300 text-lg"></p>
+      </div>
     </div>
 
     <hr class="my-8 border-pink-400">
 
+    <!-- Movie Details -->
+    <section>
+      <h3 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+        <span>🎥</span> Tell Us The Impact The Movie Had On You
+      </h3>
+      <div id="movieDetails" class="space-y-4 text-white">
+        <!-- Movie info gets injected here -->
+      </div>
+    </section>
+
+    <hr class="my-8 border-pink-400">
+
+    <!-- Reviews -->
     <section id="reviews" class="space-y-4">
       <h3 class="text-xl font-semibold text-pink-300">Mood-Tagged Reviews</h3>
       <div id="reviewList" class="space-y-2">
@@ -36,9 +61,10 @@
 
     <hr class="my-8 border-pink-400">
 
+    <!-- Actions -->
     <section id="actions" class="flex flex-col md:flex-row md:items-center md:gap-4 gap-2">
       <button id="favoriteBtn" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md">⭐ Favorite</button>
-      <button id="saveBtn" class="bg-blue-400 hover:bg-blue-500 text-black px-4 py-2 rounded-md">📂 Save to List</button>
+
       <div class="flex items-center gap-2">
         <label for="rating" class="text-sm">Rate:</label>
         <select id="rating" class="text-black p-1 rounded-md">
