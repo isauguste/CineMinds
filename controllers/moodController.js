@@ -5,14 +5,14 @@ const MOOD_SYNONYMS = {
   sad:     ['sad','down','depressed','unhappy','blue','cry','tears','heartbroken','lonely'],
   anxious: ['anxious','nervous','worried','stressed','stress','overwhelmed','tense','panic'],
   angry:   ['angry','mad','furious','irritated','annoyed','pissed','rage','frustrated'],
-  relaxed: ['relaxed','calm','chill','peaceful','serene','unwind','unwinding','cozy','laid back'],
-  bored:   ['bored','meh','tired','dull','nothing to do','uninspired','tired','lazy']
+  relaxed: ['relaxed','calm','chill','peaceful','serene','unwind','unwinding','cozy','laid back','nonchalant'],
+  bored:   ['bored','meh','tired','dull','nothing to do','uninspired','lazy','tired']
 };
 
 // Used if mood_genre_map has no rows:
 const DEFAULT_GENRES = {
   happy:   ['Comedy','Romance','Family','Animation'],
-  sad:     ['Drama','Romance','Comedy'],
+  sad:     ['Drama','Romance', 'Comedy'],
   anxious: ['Animation','Family','Comedy','Adventure'],
   angry:   ['Action','Thriller','Crime'],
   relaxed: ['Romance','Comedy','Drama'],
@@ -21,18 +21,25 @@ const DEFAULT_GENRES = {
 
 function detectMood(raw) {
   const text = String(raw || '').toLowerCase();
-  // If it’s a single word and matches a known mood, return it directly
   const single = text.trim();
   if (MOOD_SYNONYMS[single]) return single;
-
-  // Keyword scan
   for (const [mood, words] of Object.entries(MOOD_SYNONYMS)) {
     if (words.some(w => text.includes(w))) return mood;
   }
-  return null; // unknown
+  return null;
 }
 
-exports.analyzeMood = async (req, res) => {
+async function getMoods(_req, res) {
+  try {
+    const [rows] = await db.query('SELECT id, mood_label FROM moods');
+    res.json(rows);
+  } catch (err) {
+    console.error('[moodController.getMoods] DB error:', err);
+    res.status(500).json({ error: 'Failed to fetch moods' });
+  }
+}
+
+async function analyzeMood(req, res) {
   const { moodText, limit = 30, page = 1 } = req.body || {};
   if (!moodText) return res.status(400).json({ error: 'Mood input is required' });
 
@@ -41,27 +48,22 @@ exports.analyzeMood = async (req, res) => {
   const offset    = (safePage - 1) * safeLimit;
 
   try {
-    // 1) Normalize to a mood label (handles free‑text)
     const normalizedMood = detectMood(moodText) || String(moodText).toLowerCase();
 
-    // 2) Try DB mapping first
     const [mapRows] = await db.query(
       'SELECT genre FROM mood_genre_map WHERE mood = ?',
       [normalizedMood]
     );
 
-    // 3) Build genre list: DB rows or defaults 
     let genres = mapRows.map(r => r.genre);
     if (!genres.length && DEFAULT_GENRES[normalizedMood]) {
       genres = DEFAULT_GENRES[normalizedMood];
     }
 
-    // If still nothing, use a broad “popular” fallback
     let movies = [];
     if (genres.length) {
       const likes = genres.map(() => 'genre LIKE ?').join(' OR ');
       const likeParams = genres.map(g => `%${g}%`);
-
       const [movieRows] = await db.query(
         `
         SELECT *
@@ -75,7 +77,6 @@ exports.analyzeMood = async (req, res) => {
       movies = movieRows;
     }
 
-    // 4) If we’re still light on results, broaden further
     if (!movies.length) {
       const [fallbackRows] = await db.query(
         `
@@ -90,7 +91,7 @@ exports.analyzeMood = async (req, res) => {
     }
 
     const shaped = movies
-      .filter(m => (m.poster_url || '').trim() !== '') // looks denser
+      .filter(m => (m.poster_url || '').trim() !== '')
       .map(m => ({
         id: m.id ?? null,
         title: m.title ?? 'Untitled',
@@ -106,5 +107,6 @@ exports.analyzeMood = async (req, res) => {
     console.error('[moodController.analyzeMood] DB error:', err);
     res.status(500).json({ error: 'Failed to analyze mood' });
   }
-};
- 
+}
+
+module.exports = { getMoods, analyzeMood };
