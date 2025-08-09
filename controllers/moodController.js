@@ -1,4 +1,7 @@
 const db = require('../config/db');
+const { discoverByGenres, namesToIdsCSV, shapeTmdbMovie } = require('../services/tmdb');
+
+// Simple keyword map so free‑text like “I feel amazing…” still maps to a mood
 
 const MOOD_SYNONYMS = {
   happy:   ['happy','joy','joyful','glad','great','excited','amazing','awesome','love','ecstatic','thrilled'],
@@ -29,6 +32,17 @@ function detectMood(raw) {
   return null;
 }
 
+function dedupeByKey(list) {
+  const seen = new Set();
+  const out = [];
+  for (const m of list) {
+    const key = m.id ? `id:${m.id}` : `${m.title}-${m.year}`;
+    if (!seen.has(key)) { seen.add(key); out.push(m); }
+  }
+  return out;
+}
+
+// GET /api/mood/moods
 async function getMoods(_req, res) {
   try {
     const [rows] = await db.query('SELECT id, mood_label FROM moods');
@@ -39,6 +53,7 @@ async function getMoods(_req, res) {
   }
 }
 
+// POST /api/mood/analyzeMood
 async function analyzeMood(req, res) {
   const { moodText, limit = 30, page = 1 } = req.body || {};
   if (!moodText) return res.status(400).json({ error: 'Mood input is required' });
@@ -50,49 +65,58 @@ async function analyzeMood(req, res) {
   try {
     const normalizedMood = detectMood(moodText) || String(moodText).toLowerCase();
 
-    const [mapRows] = await db.query(
-      'SELECT genre FROM mood_genre_map WHERE mood = ?',
-      [normalizedMood]
-    );
-
+    // 1) Get genres from DB mapping or defaults
+    const [mapRows] = await db.query('SELECT genre FROM mood_genre_map WHERE mood = ?', [normalizedMood]);
     let genres = mapRows.map(r => r.genre);
-    if (!genres.length && DEFAULT_GENRES[normalizedMood]) {
-      genres = DEFAULT_GENRES[normalizedMood];
-    }
+    if (!genres.length && DEFAULT_GENRES[normalizedMood]) genres = DEFAULT_GENRES[normalizedMood];
 
-    let movies = [];
+    // 2) Pull from our DB first
+    let results = [];
     if (genres.length) {
       const likes = genres.map(() => 'genre LIKE ?').join(' OR ');
       const likeParams = genres.map(g => `%${g}%`);
-      const [movieRows] = await db.query(
-        `
-        SELECT *
-        FROM movies
-        WHERE (${likes})
-        ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
-        LIMIT ? OFFSET ?
-        `,
+      const [rows] = await db.query(
+        `SELECT * FROM movies
+         WHERE (${likes})
+         ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
+         LIMIT ? OFFSET ?`,
         [...likeParams, safeLimit, offset]
       );
-      movies = movieRows;
+      const shaped = rows
+        .filter(m => (m.poster_url || '').trim() !== '')
+        .map(m => ({
+          id: m.id ?? null,
+          title: m.title ?? 'Untitled',
+          year: m.year ?? 'Unknown',
+          genres: m.genre ? m.genre.split(',').map(g => g.trim()) : [],
+          poster: m.poster_url ?? '',
+          trailerLink: m.trailer_url ?? '',
+          reviews: m.review ? [m.review] : [],
+          _source: 'db',
+        }));
+      results = shaped;
     }
 
-    if (!movies.length) {
+    // 3) If DB didn’t fill the page, fetch from TMDB and merge
+    if (results.length < safeLimit && genres.length) {
+      const withGenresCSV = await namesToIdsCSV(genres); 
+      if (withGenresCSV) {
+        const tmdbPage = safePage; 
+        const tmdb = await discoverByGenres({ withGenresCSV, page: tmdbPage });
+        const tmdbShaped = tmdb.map(shapeTmdbMovie);
+        results = dedupeByKey([...results, ...tmdbShaped]);
+      }
+    }
+
+    // 4) If still empty, broad DB fallback
+    if (!results.length) {
       const [fallbackRows] = await db.query(
-        `
-        SELECT *
-        FROM movies
-        ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
-        LIMIT ? OFFSET ?
-        `,
+        `SELECT * FROM movies
+         ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
+         LIMIT ? OFFSET ?`,
         [safeLimit, offset]
       );
-      movies = fallbackRows;
-    }
-
-    const shaped = movies
-      .filter(m => (m.poster_url || '').trim() !== '')
-      .map(m => ({
+      results = fallbackRows.map(m => ({
         id: m.id ?? null,
         title: m.title ?? 'Untitled',
         year: m.year ?? 'Unknown',
@@ -100,11 +124,13 @@ async function analyzeMood(req, res) {
         poster: m.poster_url ?? '',
         trailerLink: m.trailer_url ?? '',
         reviews: m.review ? [m.review] : [],
+        _source: 'db',
       }));
+    }
 
-    res.json({ movies: shaped });
+    res.json({ movies: results.slice(0, safeLimit) });
   } catch (err) {
-    console.error('[moodController.analyzeMood] DB error:', err);
+    console.error('[moodController.analyzeMood] error:', err?.response?.data || err);
     res.status(500).json({ error: 'Failed to analyze mood' });
   }
 }
