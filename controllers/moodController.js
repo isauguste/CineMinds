@@ -1,51 +1,96 @@
 const db = require('../config/db');
 
-// GET /api/mood/moods
-exports.getMoods = async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT id, mood_label FROM moods');
-    res.json(rows);
-  } catch (err) {
-    console.error('[moodController.getMoods] DB error:', err);
-    res.status(500).json({ error: 'Failed to fetch moods' });
-  }
+const MOOD_SYNONYMS = {
+  happy:   ['happy','joy','joyful','glad','great','excited','amazing','awesome','love','ecstatic','thrilled'],
+  sad:     ['sad','down','depressed','unhappy','blue','cry','tears','heartbroken','lonely'],
+  anxious: ['anxious','nervous','worried','stressed','stress','overwhelmed','tense','panic'],
+  angry:   ['angry','mad','furious','irritated','annoyed','pissed','rage','frustrated'],
+  relaxed: ['relaxed','calm','chill','peaceful','serene','unwind','unwinding','cozy','laid back'],
+  bored:   ['bored','meh','tired','dull','nothing to do','uninspired','tired','lazy']
 };
 
-// POST /api/mood/analyzeMood
+// Used if mood_genre_map has no rows:
+const DEFAULT_GENRES = {
+  happy:   ['Comedy','Romance','Family','Animation'],
+  sad:     ['Drama','Romance','Comedy'],
+  anxious: ['Animation','Family','Comedy','Adventure'],
+  angry:   ['Action','Thriller','Crime'],
+  relaxed: ['Romance','Comedy','Drama'],
+  bored:   ['Adventure','Action','Fantasy','Sci-Fi']
+};
+
+function detectMood(raw) {
+  const text = String(raw || '').toLowerCase();
+  // If it’s a single word and matches a known mood, return it directly
+  const single = text.trim();
+  if (MOOD_SYNONYMS[single]) return single;
+
+  // Keyword scan
+  for (const [mood, words] of Object.entries(MOOD_SYNONYMS)) {
+    if (words.some(w => text.includes(w))) return mood;
+  }
+  return null; // unknown
+}
+
 exports.analyzeMood = async (req, res) => {
-  const { moodText, limit = 20, page = 1 } = req.body || {};
+  const { moodText, limit = 30, page = 1 } = req.body || {};
   if (!moodText) return res.status(400).json({ error: 'Mood input is required' });
 
-  const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+  const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 30, 1), 100);
   const safePage  = Math.max(parseInt(page, 10) || 1, 1);
   const offset    = (safePage - 1) * safeLimit;
 
   try {
-    // 1) Get all mapped genres for this mood (larger pool)
+    // 1) Normalize to a mood label (handles free‑text)
+    const normalizedMood = detectMood(moodText) || String(moodText).toLowerCase();
+
+    // 2) Try DB mapping first
     const [mapRows] = await db.query(
       'SELECT genre FROM mood_genre_map WHERE mood = ?',
-      [String(moodText).toLowerCase()]
-    );
-    if (!mapRows.length) return res.status(404).json({ error: 'No genre found for that mood' });
-
-    // 2) Build flexible LIKEs across multiple genres
-    const likes = mapRows.map(() => 'genre LIKE ?').join(' OR ');
-    const likeParams = mapRows.map(r => `%${r.genre}%`);
-
-    // 3) Pull movies (prefer ones with posters), support paging
-    const [movieRows] = await db.query(
-      `
-      SELECT *
-      FROM movies
-      WHERE (${likes})
-      ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
-      LIMIT ? OFFSET ?
-      `,
-      [...likeParams, safeLimit, offset]
+      [normalizedMood]
     );
 
-    const movies = movieRows
-      .filter(m => m.poster_url && m.poster_url.trim() !== '')
+    // 3) Build genre list: DB rows or defaults 
+    let genres = mapRows.map(r => r.genre);
+    if (!genres.length && DEFAULT_GENRES[normalizedMood]) {
+      genres = DEFAULT_GENRES[normalizedMood];
+    }
+
+    // If still nothing, use a broad “popular” fallback
+    let movies = [];
+    if (genres.length) {
+      const likes = genres.map(() => 'genre LIKE ?').join(' OR ');
+      const likeParams = genres.map(g => `%${g}%`);
+
+      const [movieRows] = await db.query(
+        `
+        SELECT *
+        FROM movies
+        WHERE (${likes})
+        ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
+        LIMIT ? OFFSET ?
+        `,
+        [...likeParams, safeLimit, offset]
+      );
+      movies = movieRows;
+    }
+
+    // 4) If we’re still light on results, broaden further
+    if (!movies.length) {
+      const [fallbackRows] = await db.query(
+        `
+        SELECT *
+        FROM movies
+        ORDER BY (poster_url IS NULL OR poster_url = ''), date_added DESC
+        LIMIT ? OFFSET ?
+        `,
+        [safeLimit, offset]
+      );
+      movies = fallbackRows;
+    }
+
+    const shaped = movies
+      .filter(m => (m.poster_url || '').trim() !== '') // looks denser
       .map(m => ({
         id: m.id ?? null,
         title: m.title ?? 'Untitled',
@@ -56,10 +101,10 @@ exports.analyzeMood = async (req, res) => {
         reviews: m.review ? [m.review] : [],
       }));
 
-    res.json({ movies });
+    res.json({ movies: shaped });
   } catch (err) {
     console.error('[moodController.analyzeMood] DB error:', err);
     res.status(500).json({ error: 'Failed to analyze mood' });
   }
 };
-
+ 
