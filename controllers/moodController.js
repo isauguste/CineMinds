@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { discoverByGenres, namesToIdsCSV, shapeTmdbMovie } = require('../services/tmdb');
+const { discoverByGenres, namesToIdsCSV, fetchTrailerUrl, shapeTmdbMovie } = require('../services/tmdb');
 
 // Simple keyword map so free‑text like “I feel amazing…” still maps to a mood
 
@@ -53,6 +53,20 @@ async function getMoods(_req, res) {
   }
 }
 
+async function withConcurrency(items, limit, worker) {
+  const out = [];
+  let i = 0;
+  async function run() {
+    while (i < items.length) {
+      const idx = i++;
+      out[idx] = await worker(items[idx], idx);
+    }
+  }
+  const runners = Array.from({ length: Math.min(limit, items.length) }, run);
+  await Promise.all(runners);
+  return out;
+}
+
 // POST /api/mood/analyzeMood
 async function analyzeMood(req, res) {
   const { moodText, limit = 30, page = 1 } = req.body || {};
@@ -65,12 +79,12 @@ async function analyzeMood(req, res) {
   try {
     const normalizedMood = detectMood(moodText) || String(moodText).toLowerCase();
 
-    // 1) Get genres from DB mapping or defaults
+    // 1) Genres from DB or defaults
     const [mapRows] = await db.query('SELECT genre FROM mood_genre_map WHERE mood = ?', [normalizedMood]);
     let genres = mapRows.map(r => r.genre);
     if (!genres.length && DEFAULT_GENRES[normalizedMood]) genres = DEFAULT_GENRES[normalizedMood];
 
-    // 2) Pull from our DB first
+    // 2) DB first
     let results = [];
     if (genres.length) {
       const likes = genres.map(() => 'genre LIKE ?').join(' OR ');
@@ -97,18 +111,28 @@ async function analyzeMood(req, res) {
       results = shaped;
     }
 
-    // 3) If DB didn’t fill the page, fetch from TMDB and merge
-    if (results.length < safeLimit && genres.length) {
-      const withGenresCSV = await namesToIdsCSV(genres); 
+    // 3) TMDB fill + enrichment (genres, overview, trailer)
+    if (genres.length && results.length < safeLimit) {
+      const withGenresCSV = await namesToIdsCSV(genres);
       if (withGenresCSV) {
-        const tmdbPage = safePage; 
-        const tmdb = await discoverByGenres({ withGenresCSV, page: tmdbPage });
-        const tmdbShaped = tmdb.map(shapeTmdbMovie);
+        const tmdb = await discoverByGenres({ withGenresCSV, page: safePage });
+        // shape + then fetch trailers with small concurrency
+        let tmdbShaped = await Promise.all(tmdb.map(shapeTmdbMovie));
+
+        // fetch trailers for the first N tmdb items to avoid lots of requests
+        const N = Math.min(20, tmdbShaped.length);
+        const withTrailers = await withConcurrency(
+          tmdbShaped.slice(0, N),
+          5, // up to 5 parallel requests
+          async (m) => ({ ...m, trailerLink: await fetchTrailerUrl(m.id) })
+        );
+        tmdbShaped = [...withTrailers, ...tmdbShaped.slice(N)]; // rest keep empty trailer
+
         results = dedupeByKey([...results, ...tmdbShaped]);
       }
     }
 
-    // 4) If still empty, broad DB fallback
+    // 4) Broad DB fallback if still empty
     if (!results.length) {
       const [fallbackRows] = await db.query(
         `SELECT * FROM movies
@@ -128,6 +152,7 @@ async function analyzeMood(req, res) {
       }));
     }
 
+    // 5) Trim to limit and send
     res.json({ movies: results.slice(0, safeLimit) });
   } catch (err) {
     console.error('[moodController.analyzeMood] error:', err?.response?.data || err);
