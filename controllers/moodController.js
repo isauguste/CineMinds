@@ -15,7 +15,7 @@ const MOOD_SYNONYMS = {
 // Used if mood_genre_map has no rows:
 const DEFAULT_GENRES = {
   happy:   ['Comedy','Romance','Family','Animation'],
-  sad:     ['Drama','Romance', 'Comedy'],
+  sad:     ['Drama','Comedy'],
   anxious: ['Animation','Family','Comedy','Adventure'],
   angry:   ['Action','Thriller','Crime'],
   relaxed: ['Romance','Comedy','Drama'],
