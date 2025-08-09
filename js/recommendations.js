@@ -5,109 +5,122 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultsSection = document.getElementById("resultsSection");
   const resultsContainer = document.getElementById("resultsContainer");
 
-  // Pagination controls 
+  // optional: hide/remove your old prev/next controls
   const pagWrap = document.getElementById("resultsPagination");
-  const prevBtn = document.getElementById("resultsPrev");
-  const nextBtn = document.getElementById("resultsNext");
-  const pageInfo = document.getElementById("resultsPageInfo");
+  if (pagWrap) pagWrap.classList.add("hidden");
+
+  const loadMoreBtn = document.getElementById("loadMoreBtn");
 
   let allMovies = [];
-  let currentPage = 1;
-  const pageSize = 10;
+  let serverPage = 1;               // page on the backend
+  const LIMIT = 20;                  // how many per fetch
+  let lastBatchCount = 0;            // to know if there’s more
+  let currentQuery = "";             // last mood used
+  let loading = false;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const inputText = (moodText.value || "").trim();
     const selectedMood = moodSelect.value;
-    const payload = { moodText: inputText || selectedMood };
+    const mood = inputText || selectedMood;
 
-    if (!payload.moodText) {
+    if (!mood) {
       alert("Please type a mood or select one from the dropdown.");
       return;
     }
 
+    // reset state for a new query
+    currentQuery = mood;
+    allMovies = [];
+    serverPage = 1;
+    lastBatchCount = 0;
     resultsContainer.innerHTML = "<p class='text-center w-full col-span-full'>Loading...</p>";
     resultsSection.classList.remove("hidden");
+
+    await fetchAndAppend(); // load first page
+    renderMovies(allMovies);
+    toggleLoadMore();
+
+    resultsSection.scrollIntoView({ behavior: "smooth" });
+  });
+
+  loadMoreBtn?.addEventListener("click", async () => {
+    await fetchAndAppend();
+    renderMovies(allMovies, { append: false }); // re-render whole grid (simple)
+    toggleLoadMore();
+  });
+
+  async function fetchAndAppend() {
+    if (loading) return;
+    loading = true;
+    loadMoreBtn?.setAttribute("disabled", "true");
 
     try {
       const res = await fetch("http://localhost:3000/api/mood/analyzeMood", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ moodText: currentQuery, limit: LIMIT, page: serverPage }),
       });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      const batch = Array.isArray(data.movies) ? data.movies : [];
+      lastBatchCount = batch.length;
 
-      if (!Array.isArray(data.movies)) throw new Error("Invalid response");
-
-      // Normalize fields and keep a reliable id
-      allMovies = data.movies.map((m) => {
-        const id =
-          m.id ??
-          m.movie_id ??
-          m.db_id ??
-          m.tmdb_id ??
-          m.imdb_id ??
-          null;
-
+      // Normalize and append
+      const normalized = batch.map((m) => {
+        const id = m.id ?? m.movie_id ?? m.db_id ?? m.tmdb_id ?? m.imdb_id ?? null;
+        const poster = m.poster || m.poster_url || "";
         return {
           raw: m,
           id,
-          poster: m.poster || m.poster_url || "https://placehold.co/300x450?text=No+Poster",
+          poster: poster && poster.trim() !== "" ? poster : "https://placehold.co/300x450?text=No+Poster",
           title: m.title || "Untitled",
           year: m.year || m.movie_year || "",
           genres: Array.isArray(m.genres) ? m.genres.join(", ") : (m.genre || ""),
-          trailerLink: m.trailerLink || null,
-          quote: Array.isArray(m.reviews) && m.reviews[0] ? m.reviews[0] : null,
+          trailerLink: m.trailerLink || "",
+          quote: Array.isArray(m.reviews) && m.reviews[0] ? m.reviews[0] : "",
         };
       });
 
-      currentPage = 1;
-      renderPage();
-
-      // Auto-scroll to results
-      resultsSection.scrollIntoView({ behavior: "smooth" });
+      allMovies = dedupeById([...allMovies, ...normalized]);
+      serverPage += 1; // next backend page
     } catch (err) {
       console.error("Error fetching recommendations:", err);
-      resultsContainer.innerHTML =
-        "<p class='text-center text-red-400'>Failed to load recommendations. Please try again.</p>";
-      pagWrap?.classList.add("hidden");
-    }
-  });
-
-  function renderPage() {
-    const totalPages = Math.max(1, Math.ceil(allMovies.length / pageSize));
-    const start = (currentPage - 1) * pageSize;
-    const pageItems = allMovies.slice(start, start + pageSize);
-
-    renderMovies(pageItems);
-
-    if (allMovies.length > pageSize) {
-      pagWrap.classList.remove("hidden");
-      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-      prevBtn.disabled = currentPage === 1;
-      nextBtn.disabled = currentPage === totalPages;
-    } else {
-      pagWrap.classList.add("hidden");
+      if (allMovies.length === 0) {
+        resultsContainer.innerHTML =
+          "<p class='text-center text-red-400'>Failed to load recommendations. Please try again.</p>";
+      }
+    } finally {
+      loading = false;
+      loadMoreBtn?.removeAttribute("disabled");
     }
   }
 
-  prevBtn?.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderPage();
-      resultsSection.scrollIntoView({ behavior: "smooth" });
+  function dedupeById(list) {
+    const seen = new Set();
+    const out = [];
+    for (const m of list) {
+      const key = m.id ? `id:${m.id}` : `hash:${m.title}-${m.year}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(m);
+      }
     }
-  });
+    return out;
+  }
 
-  nextBtn?.addEventListener("click", () => {
-    const totalPages = Math.max(1, Math.ceil(allMovies.length / pageSize));
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderPage();
-      resultsSection.scrollIntoView({ behavior: "smooth" });
+  function toggleLoadMore() {
+    // Show "Load more" if we got a full batch (likely more on server)
+    if (loadMoreBtn) {
+      if (lastBatchCount === LIMIT) {
+        loadMoreBtn.classList.remove("hidden");
+      } else {
+        loadMoreBtn.classList.add("hidden");
+      }
     }
-  });
+  }
 
   function renderMovies(movies) {
     resultsContainer.innerHTML = "";
@@ -120,8 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const href = m.id ? `/movie?id=${encodeURIComponent(m.id)}` : null;
 
       const card = document.createElement("div");
-      card.className =
-        "bg-gray-800 rounded-xl p-4 shadow-md flex flex-col hover:shadow-lg transition";
+      card.className = "bg-gray-800 rounded-xl p-4 shadow-md flex flex-col hover:shadow-lg transition";
 
       card.innerHTML = `
         ${href ? `<a href="${href}" class="block">` : `<div>`}
@@ -151,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resultsContainer.appendChild(card);
     });
 
-    // Delegate Save-to-Favorites (overwrites handler each render—fine)
+    // Delegate Save-to-Favorites
     resultsContainer.onclick = async (e) => {
       const btn = e.target.closest("[data-fav]");
       if (!btn) return;
