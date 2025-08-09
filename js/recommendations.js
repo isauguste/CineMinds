@@ -5,17 +5,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultsSection = document.getElementById("resultsSection");
   const resultsContainer = document.getElementById("resultsContainer");
 
-  // optional: hide/remove your old prev/next controls
+  // hide old pager if present
   const pagWrap = document.getElementById("resultsPagination");
   if (pagWrap) pagWrap.classList.add("hidden");
 
   const loadMoreBtn = document.getElementById("loadMoreBtn");
 
   let allMovies = [];
-  let serverPage = 1;               // page on the backend
-  const LIMIT = 20;                  // how many per fetch
-  let lastBatchCount = 0;            // to know if there’s more
-  let currentQuery = "";             // last mood used
+  let serverPage = 1;          // backend page
+  const LIMIT = 20;
+  let lastBatchCount = 0;
+  let currentQuery = "";
   let loading = false;
 
   form.addEventListener("submit", async (e) => {
@@ -30,15 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // reset state for a new query
+    // reset state
     currentQuery = mood;
     allMovies = [];
     serverPage = 1;
     lastBatchCount = 0;
+
     resultsContainer.innerHTML = "<p class='text-center w-full col-span-full'>Loading...</p>";
     resultsSection.classList.remove("hidden");
 
-    await fetchAndAppend(); // load first page
+    await fetchAndAppend();
     renderMovies(allMovies);
     toggleLoadMore();
 
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadMoreBtn?.addEventListener("click", async () => {
     await fetchAndAppend();
-    renderMovies(allMovies, { append: false }); // re-render whole grid (simple)
+    renderMovies(allMovies);
     toggleLoadMore();
   });
 
@@ -68,24 +69,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const batch = Array.isArray(data.movies) ? data.movies : [];
       lastBatchCount = batch.length;
 
-      // Normalize and append
       const normalized = batch.map((m) => {
-        const id = m.id ?? m.movie_id ?? m.db_id ?? m.tmdb_id ?? m.imdb_id ?? null;
-        const poster = m.poster || m.poster_url || "";
+        const id =
+          m.id ?? m.movie_id ?? m.db_id ?? m.tmdb_id ?? m.imdb_id ?? null;
+
+        const poster = (m.poster || m.poster_url || "").trim();
+        const genresArr = Array.isArray(m.genres)
+          ? m.genres
+          : (m.genre ? m.genre.split(",").map((g) => g.trim()).filter(Boolean) : []);
+
+        const quote =
+          Array.isArray(m.reviews) && m.reviews[0] ? m.reviews[0] : "";
+
         return {
           raw: m,
           id,
-          poster: poster && poster.trim() !== "" ? poster : "https://placehold.co/300x450?text=No+Poster",
+          source: m._source || m.source || (m.tmdb_id ? "tmdb" : "db"),
+          poster: poster !== "" ? poster : "https://placehold.co/300x450?text=No+Poster",
           title: m.title || "Untitled",
           year: m.year || m.movie_year || "",
-          genres: Array.isArray(m.genres) ? m.genres.join(", ") : (m.genre || ""),
+          genres: genresArr,
           trailerLink: m.trailerLink || "",
-          quote: Array.isArray(m.reviews) && m.reviews[0] ? m.reviews[0] : "",
+          quote,
         };
       });
 
       allMovies = dedupeById([...allMovies, ...normalized]);
-      serverPage += 1; // next backend page
+      serverPage += 1;
     } catch (err) {
       console.error("Error fetching recommendations:", err);
       if (allMovies.length === 0) {
@@ -112,13 +122,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function toggleLoadMore() {
-    // Show "Load more" if we got a full batch (likely more on server)
-    if (loadMoreBtn) {
-      if (lastBatchCount === LIMIT) {
-        loadMoreBtn.classList.remove("hidden");
-      } else {
-        loadMoreBtn.classList.add("hidden");
-      }
+    if (!loadMoreBtn) return;
+    if (lastBatchCount === LIMIT) {
+      loadMoreBtn.classList.remove("hidden");
+    } else {
+      loadMoreBtn.classList.add("hidden");
     }
   }
 
@@ -149,13 +157,24 @@ document.addEventListener("DOMContentLoaded", () => {
           <h4 class="text-lg font-bold mb-1">${m.title}</h4>
         ${href ? `</a>` : `</div>`}
 
-        <p class="text-sm text-gray-400 mb-2">${m.year ? `${m.year} • ` : ""}${m.genres}</p>
+        <p class="text-sm text-gray-400 mb-2">${m.year ? `${m.year} • ` : ""}${Array.isArray(m.genres) ? m.genres.join(", ") : m.genres}</p>
         ${m.trailerLink ? `<a href="${m.trailerLink}" target="_blank" class="text-sm text-blue-400 mb-2">Watch Trailer</a>` : ""}
 
         ${m.quote ? `<p class="text-xs text-gray-300 italic mb-2">"${m.quote}"</p>` : ""}
 
-        <button class="mt-auto bg-red-500 hover:bg-red-600 text-sm text-white py-2 px-4 rounded"
-                ${m.id ? `data-fav="${encodeURIComponent(m.id)}"` : "disabled"}>
+        <button
+          class="mt-auto bg-red-500 hover:bg-red-600 text-sm text-white py-2 px-4 rounded"
+          ${m.id ? `
+            data-fav-id="${encodeURIComponent(m.id)}"
+            data-fav-source="${encodeURIComponent(m.source || 'db')}"
+            data-fav-title="${encodeURIComponent(m.title)}"
+            data-fav-year="${encodeURIComponent(m.year)}"
+            data-fav-poster="${encodeURIComponent(m.poster)}"
+            data-fav-genres="${encodeURIComponent((Array.isArray(m.genres) ? m.genres : String(m.genres)).join('|'))}"
+            data-fav-trailer="${encodeURIComponent(m.trailerLink || '')}"
+            data-fav-review="${encodeURIComponent(m.quote || '')}"
+          ` : "disabled"}
+        >
           Save to Favorites
         </button>
       `;
@@ -165,15 +184,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Delegate Save-to-Favorites
     resultsContainer.onclick = async (e) => {
-      const btn = e.target.closest("[data-fav]");
+      const btn = e.target.closest("button[data-fav-id]");
       if (!btn) return;
 
-      const movieId = btn.getAttribute("data-fav");
       const token = localStorage.getItem("token");
       if (!token) {
         alert("You must be logged in to save favorites.");
         return;
       }
+
+      const payload = {
+        movieId: decodeURIComponent(btn.getAttribute("data-fav-id")),
+        source: decodeURIComponent(btn.getAttribute("data-fav-source") || "db"),
+        title: decodeURIComponent(btn.getAttribute("data-fav-title") || ""),
+        year: decodeURIComponent(btn.getAttribute("data-fav-year") || ""),
+        poster: decodeURIComponent(btn.getAttribute("data-fav-poster") || ""),
+        genres: decodeURIComponent(btn.getAttribute("data-fav-genres") || "")
+                  .split("|")
+                  .filter(Boolean),
+        trailerLink: decodeURIComponent(btn.getAttribute("data-fav-trailer") || ""),
+        review: decodeURIComponent(btn.getAttribute("data-fav-review") || ""),
+      };
 
       try {
         btn.disabled = true;
@@ -183,9 +214,12 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ movieId }),
+          body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error("Failed");
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || "Failed");
+        }
         btn.textContent = "Saved ✓";
       } catch (err) {
         console.error(err);
