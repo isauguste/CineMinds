@@ -25,6 +25,7 @@ const moderationRoutes = require('./routes/moderation');
 const adminRoutes = require('./routes/admin'); 
 const reviewsRoutes = require('./routes/reviews');
 const favoritesRoutes = require('./routes/favorites');
+const availabilityRoutes = require('./routes/availability');
 
 // Register routes
 app.use('/api/auth', authRoutes);
@@ -37,7 +38,7 @@ app.use('/api/moderation', moderationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewsRoutes); 
 app.use('/api/favorites', favoritesRoutes);
-app.use("/api/availability", require("./routes/availability"));
+app.use('/api/availability', availabilityRoutes);
 
 
 const PORT = process.env.PORT || 3000;
