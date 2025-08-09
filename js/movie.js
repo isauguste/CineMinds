@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Favorite button
-  favoriteBtn.addEventListener("click", () => {
+ /* favoriteBtn.addEventListener("click", () => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to favorite a movie.");
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Movie saved to favorites!");
       })
       .catch(err => console.error("Favorite error:", err));
-  });
+  }); */
 
   // Submit review form
   reviewForm.addEventListener("submit", (e) => {
