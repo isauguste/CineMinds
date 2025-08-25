@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoodFlix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-800 via-indigo-900 to-red-900 text-white min-h-screen font-sans">
+
+  <!-- Navigation Bar -->
+  <nav class="flex items-center justify-between px-6 py-4 bg-black/30 backdrop-blur sticky top-0 z-50">
+    <div class="text-2xl font-bold text-red-500">MoodFlix</div>
+    <div class="space-x-4">
+      <a href="recommendations.html" class="text-white px-3 py-1 rounded hover:bg-red-600 bg-red-500/80 transition" id="navRecommendations">Recommendations</a>
+      <a href="profile.html"  id="navProfile" class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 hidden">Profile</a> 
+      <a href="admin.html" id="navAdmin" class="bg-pink-600 text-black px-3 py-1 rounded hover:bg-white-600 hidden">Admin Dashboard</a>
+      <a href="manager.html" id="navManager" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-black-700 hidden">Moderation</a>
+      <a href="login.html" class="bg-white text-black px-4 py-1 rounded hover:bg-gray-200">Login</a>
+      <a href="register.html" class="bg-red-500 px-4 py-1 rounded hover:bg-red-600">Register</a> 
+      <a href="logout.html"  id="navLogout" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500 hidden">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Hero + Mood Input Section -->
+  <section class="text-center px-4 py-16 max-w-3xl mx-auto">
+    <h1 class="text-5xl md:text-6xl font-extrabold text-red-500 mb-4">Let Your Mood Choose the Movie</h1>
+    <p class="text-xl text-gray-200 mb-6">
+      MoodFlix helps you discover the perfect movie based on how you feel. Just tell us your mood — or write it in your own words — and we'll do the rest.
+    </p>
+
+    <!-- Mood Input -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+      <input 
+        type="text" 
+        id="moodInput" 
+        placeholder="In one word, tell us your mood" 
+        class="w-full px-4 py-2 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+      />
+      <button 
+        onclick="handleMoodSearch()"
+        class="px-6 py-2 bg-red-500 hover:bg-red-600 rounded-md font-semibold transition"
+      >
+        Get Recommendations
+      </button>
+    </div>
+
+    <!-- Mood Cloud -->
+    <div class="flex flex-wrap justify-center gap-3 mt-8 text-sm text-gray-300">
+      <span class="px-3 py-1 bg-red-500/30 rounded-full">happy</span>
+      <span class="px-3 py-1 bg-blue-500/30 rounded-full">sad</span>
+      <span class="px-3 py-1 bg-purple-500/30 rounded-full">anxious</span>
+      <span class="px-3 py-1 bg-pink-500/30 rounded-full">excited</span>
+      <span class="px-3 py-1 bg-indigo-500/30 rounded-full">relaxed</span>
+      <span class="px-3 py-1 bg-orange-500/30 rounded-full">bored</span>
+    </div>
+  </section>
+
+  <!-- About the App -->
+  <section class="bg-black/20 text-center py-10 px-4">
+    <h2 class="text-3xl font-bold text-white mb-4">About MoodFlix</h2>
+    <p class="text-gray-300 max-w-2xl mx-auto">
+      MoodFlix is a mood-based movie recommendation app. You can either type how you're feeling or submit a message, and our system will analyze your mood and suggest a list of movies tailored to your emotional state. Save favorites, leave mood-based reviews, and find the film that fits your vibe.
+    </p>
+  </section>
+
+  <!-- Mood Search Handler -->
+  <script>
+    function handleMoodSearch() {
+      const mood = document.getElementById("moodInput").value.trim();
+      if (!mood) {
+        alert("Please enter a mood!");
+        return;
+      } 
+
+      sessionStorage.setItem("fromHomeMoodSubmit", "true");
+      window.location.href = `recommendations.html?mood=${encodeURIComponent(mood)}`;
+    }
+  </script> 
+
+    <!-- Footer -->
+  <footer class="text-center py-4 text-white">
+  <p class="text-sm md:text-base">© 2025 MoodFlix. All rights reserved.</p>
+  </footer>
+ <script src="js/main.js"></script>
+</body>
+</html>
+
