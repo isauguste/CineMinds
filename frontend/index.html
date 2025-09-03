@@ -3,16 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MoodFlix</title>
+  <title>CineMinds</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Smooth background crossfade */
+    #bg-slideshow {
+      transition: background-image 1.5s ease-in-out;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-purple-800 via-indigo-900 to-red-900 text-white min-h-screen font-sans">
+<body class="bg-gradient-to-br from-purple-800 via-indigo-900 to-red-900 text-white min-h-screen font-sans relative">
+
+  <!-- Background Slideshow -->
+  <div id="bg-slideshow" class="fixed inset-0 -z-10 opacity-40"></div>
 
   <!-- Navigation Bar -->
   <nav class="flex items-center justify-between px-6 py-4 bg-black/30 backdrop-blur sticky top-0 z-50">
-    <div class="text-2xl font-bold text-red-500">MoodFlix</div>
+    <div class="text-2xl font-bold text-red-500">CineMinds</div>
     <div class="space-x-4">
       <a href="recommendations.html" class="text-white px-3 py-1 rounded hover:bg-red-600 bg-red-500/80 transition" id="navRecommendations">Recommendations</a>
+      <a href="genre.html" class="bg-white text-black px-4 py-1 rounded hover:bg-gray-200">Browse By Genre</a>
       <a href="profile.html"  id="navProfile" class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 hidden">Profile</a> 
       <a href="admin.html" id="navAdmin" class="bg-pink-600 text-black px-3 py-1 rounded hover:bg-white-600 hidden">Admin Dashboard</a>
       <a href="manager.html" id="navManager" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-black-700 hidden">Moderation</a>
@@ -26,7 +36,7 @@
   <section class="text-center px-4 py-16 max-w-3xl mx-auto">
     <h1 class="text-5xl md:text-6xl font-extrabold text-red-500 mb-4">Let Your Mood Choose the Movie</h1>
     <p class="text-xl text-gray-200 mb-6">
-      MoodFlix helps you discover the perfect movie based on how you feel. Just tell us your mood — or write it in your own words — and we'll do the rest.
+      CineMinds helps you discover the perfect movie based on how you feel. Just tell us your mood — or write it in your own words — and we'll do the rest.
     </p>
 
     <!-- Mood Input -->
@@ -58,11 +68,16 @@
 
   <!-- About the App -->
   <section class="bg-black/20 text-center py-10 px-4">
-    <h2 class="text-3xl font-bold text-white mb-4">About MoodFlix</h2>
+    <h2 class="text-3xl font-bold text-white mb-4">About CineMinds</h2>
     <p class="text-gray-300 max-w-2xl mx-auto">
-      MoodFlix is a mood-based movie recommendation app. You can either type how you're feeling or submit a message, and our system will analyze your mood and suggest a list of movies tailored to your emotional state. Save favorites, leave mood-based reviews, and find the film that fits your vibe.
+      CineMinds is a mood-based movie recommendation app. You can either type what's on your mind and how you're feeling or submit a message, and our system will analyze your mood and suggest a list of movies tailored to your emotional state. Save favorites, leave mood-based reviews, and find the film that fits your vibe!
     </p>
   </section>
+
+  <!-- Footer -->
+  <footer class="text-center py-4 text-white">
+    <p class="text-sm md:text-base">© 2025 CineMinds. All rights reserved.</p>
+  </footer>
 
   <!-- Mood Search Handler -->
   <script>
@@ -78,11 +93,46 @@
     }
   </script> 
 
-    <!-- Footer -->
-  <footer class="text-center py-4 text-white">
-  <p class="text-sm md:text-base">© 2025 MoodFlix. All rights reserved.</p>
-  </footer>
- <script src="js/main.js"></script>
+  <!-- Background Poster Loader -->
+  <script>
+    const apiKey = "7ae8d9030d7a71cc2f4a9839aacaa6ce";
+    const bgSlideshow = document.getElementById("bg-slideshow");
+
+    async function loadBackground() {
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`);
+        const data = await res.json();
+
+        // Get up to 20 posters
+        const posters = data.results
+          .map(movie => movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : null)
+          .filter(Boolean)
+          .slice(0, 20);
+
+        let index = 0;
+        function changeBackground() {
+          bgSlideshow.style.backgroundImage = `
+            linear-gradient(rgba(20,0,40,0.7), rgba(0,0,0,0.7)),
+            url(${posters[index]})
+          `;
+          bgSlideshow.style.backgroundSize = "cover";
+          bgSlideshow.style.backgroundPosition = "center";
+          index = (index + 1) % posters.length;
+        }
+
+        // Initial + rotate every 8s
+        changeBackground();
+        setInterval(changeBackground, 4000);
+
+      } catch (error) {
+        console.error("Error fetching posters:", error);
+      }
+    }
+
+    loadBackground();
+  </script>
+
+  <script src="js/main.js"></script>
 </body>
 </html>
 
