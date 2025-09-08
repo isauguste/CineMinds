@@ -93,46 +93,82 @@
     }
   </script> 
 
+<style> 
+ 	.bg-layer { 
+		position: fixed;
+		inset: 0;
+		background-size: cover;
+		background-position: center;
+		z-index: -10;
+		opacity: 0;
+		transition: opacity 2s ease-in-out;
+	} 
+	.bg-layer.active {
+		opacity: 0.4; /* controls brightness */ 
+	}
+</style> 
+
+<!-- Two layers for crossfade --> 
+<div id="bg1" class="bg-layer"></div>
+<div id="bg2" class="bg-layer"></div> 
+
   <!-- Background Poster Loader -->
   <script>
     const apiKey = "7ae8d9030d7a71cc2f4a9839aacaa6ce";
-    const bgSlideshow = document.getElementById("bg-slideshow");
+    const bg1 = document.getElementById("bg1");
+    const bg2 = document.getElementById("bg2"); 
+    let activeLayer = 1;
 
     async function loadBackground() {
       try {
         const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`);
         const data = await res.json();
 
-        // Get up to 20 posters
+        // Get up to 30 posters
         const posters = data.results
           .map(movie => movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : null)
           .filter(Boolean)
-          .slice(0, 20);
+          .slice(0, 30);
 
         let index = 0;
-        function changeBackground() {
-          bgSlideshow.style.backgroundImage = `
+	function changeBackground() {
+        const nextPoster = posters[index];
+
+        if (activeLayer === 1) {
+          bg2.style.backgroundImage = `
             linear-gradient(rgba(20,0,40,0.7), rgba(0,0,0,0.7)),
-            url(${posters[index]})
+            url(${nextPoster})
           `;
-          bgSlideshow.style.backgroundSize = "cover";
-          bgSlideshow.style.backgroundPosition = "center";
-          index = (index + 1) % posters.length;
+          bg2.classList.add("active");
+          bg1.classList.remove("active");
+          activeLayer = 2;
+        } else {
+          bg1.style.backgroundImage = `
+            linear-gradient(rgba(20,0,40,0.7), rgba(0,0,0,0.7)),
+            url(${nextPoster})
+          `;
+          bg1.classList.add("active");
+          bg2.classList.remove("active");
+          activeLayer = 1;
         }
 
-        // Initial + rotate every 4s
-        changeBackground();
-        setInterval(changeBackground, 4000);
-
-      } catch (error) {
-        console.error("Error fetching posters:", error);
+        index = (index + 1) % posters.length;
       }
-    }
 
-    loadBackground();
-  </script>
+      // Rotate every 6s
+      changeBackground();
+      setInterval(changeBackground, 6000);
+    } catch (error) {
+      console.error("Error fetching posters:", error);
+    }
+  }
+
+  loadBackground();
+ </script>
 
   <script src="js/main.js"></script>
-</body>
+
+ </body>
+
 </html>
 
