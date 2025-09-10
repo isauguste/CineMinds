@@ -32,7 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/movies', moviesRouter);
 app.use('/api/mood', moodRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/genres', genreRoutes);        
+app.use('/api/genres', genresRoutes);        
 app.use('/api/manager', managerRoutes);
 app.use('/api/moderation', moderationRoutes); 
 app.use('/api/admin', adminRoutes);
